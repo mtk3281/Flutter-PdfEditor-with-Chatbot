@@ -1,0 +1,104 @@
+name: pdfeditor
+description: "Flutter project which helps users to open and handle PDF files"
+publish_to: none
+version: 1.0.0+1
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  permission_handler: ^11.3.0
+  path_provider: ^2.1.2
+  file_picker: ^8.0.0+1
+  flutter_pdfview: ^1.3.2
+  path: ^1.9.0
+  shared_preferences: ^2.2.2
+  sliding_clipped_nav_bar: ^3.1.1
+  flutter_native_splash: ^2.3.13
+  icons_launcher: ^2.1.7
+  receive_sharing_intent: ^1.6.7
+  intl: ^0.19.0
+  open_file: ^3.3.2
+  pdfx: ^2.6.0
+  loggy: ^2.0.3
+  go_router: ^13.2.1
+  url_launcher: ^6.1.14
+  google_fonts: ^6.1.0
+  cached_network_image: ^3.3.0
+  hive: ^2.2.3
+  flutter_chat_ui: ^1.6.12
+  uuid: ^4.3.3
+  flutter_chat_types: ^3.6.2
+  freezed_annotation: ^2.4.1
+  json_annotation: ^4.8.1
+  dio: ^5.4.0
+  flutter_secure_storage: ^9.0.0
+  flutter_riverpod: ^2.4.10
+  riverpod_annotation: ^2.3.4
+  image_picker: ^1.0.7
+  syncfusion_flutter_pdf: ^24.2.4
+  syncfusion_flutter_pdfviewer: ^24.2.5
+  flutter_spinkit: ^5.2.0
+  lottie: ^3.0.0
+
+# iOS
+  cupertino_icons: ^1.0.2
+  
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.2
+  build_runner: ^2.4.8
+  freezed: ^2.4.7
+  hive_generator: ^2.0.0
+  json_serializable: ^6.7.1
+  mockito: ^5.4.4
+
+flutter_native_splash:
+  color: "#ffffff"
+  image: assets/splash.png
+  android_12:
+    image: assets/android12splash1152.png
+    color: "#ffffff"
+
+icons_launcher:
+  image_path: "assets/splash.png"
+  platforms:
+    android:
+      enable: true
+  android:
+    image_path: "assets/splash.png"
+    adaptive_background_color: "#ffffff"
+    adaptive_foreground_image: "assets/splash.png"
+    adaptive_round_image: "assets/splash.png"
+    adaptive_monochrome_image: "assets/splash.png"
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/fonts/
+    - assets/images/
+    - assets/animations/
+    - assets/pdf.png
+    - assets/doc.png
+    - assets/docx.png
+    - assets/ppt.png
+    - assets/ppt.png
+    - assets/txt.png
+    - assets/access-permission.png
+    - assets/no-permission.png
+    - assets/no-recent-search.png
+  fonts:
+    - family: Lato
+      fonts:
+        - asset: fonts/Lato-Bold.ttf
+          weight: 800
+
+android:
+  defaultIntent: launch
+  intentFilters:
+    - action: ACTION_VIEW
+      category: CATEGORY_DEFAULT
+      mimeData:
+        - mimeType: application/pdf
