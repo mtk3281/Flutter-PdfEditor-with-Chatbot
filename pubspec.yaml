@@ -44,6 +44,8 @@ dependencies:
 
 # iOS
   cupertino_icons: ^1.0.2
+  spreadsheet_decoder: ^2.2.0
+  pdf: ^3.10.8
   
 dev_dependencies:
   flutter_test:
@@ -89,6 +91,7 @@ flutter:
     - assets/access-permission.png
     - assets/no-permission.png
     - assets/no-recent-search.png
+    - assets/icon/launch-icon.png
   fonts:
     - family: Lato
       fonts:

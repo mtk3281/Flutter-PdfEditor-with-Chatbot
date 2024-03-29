@@ -1,52 +1,80 @@
 import 'package:flutter/material.dart';
+import 'package:pdfeditor/screens/ToolPage/imgtopdf.dart'; // Import the file containing MultiImagePdfGenerator
+import 'package:pdfeditor/screens/ToolPage/txttopdf.dart';
+import 'package:pdfeditor/screens/ToolPage/setPassword.dart'; // Import the file containing PasswordProtectPDF
+import 'HomePage/pdf_viewer_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
+import 'package:pdfeditor/screens/home_screen.dart';
+import 'package:file_picker/file_picker.dart';
+
+final GlobalKey<PdfEditorState> _pdfEditorKeys = GlobalKey<PdfEditorState>();
 
 class ToolsScreen extends StatelessWidget {
-  const ToolsScreen({super.key});
+  const ToolsScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
         appBar: AppBar(
+          backgroundColor: Color.fromARGB(255, 0, 0, 0),
           title: const Text(
-            '  ToolBox',
-            style: TextStyle(fontFamily: 'Lato'),
+            'ToolBox',
+            style: TextStyle(fontFamily: 'Lato', color: Colors.white),
           ),
+          toolbarHeight: 65.0,
         ),
-        body: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              buildToolSection(title: ' Create PDF', icons: [
-                Icons.image,
-                Icons.text_snippet,
-                Icons.table_chart,
-              ], names: [
-                'Create from Images',
-                'Text to PDF',
-                'Excel to PDF',
-              ]),
-              const SizedBox(height: 24),
-              buildToolSection(title: ' Security', icons: [
-                Icons.lock,
-                Icons.lock_open,
-              ], names: [
-                'Add Password',
-                'Remove Password',
-              ]),
-              const SizedBox(height: 24),
-              buildToolSection(title: ' Edit PDF', icons: [
-                Icons.merge_type,
-                Icons.image,
-                Icons.sort,
-              ], names: [
-                'Combine Files',
-                'Export to Pictures',
-                'Arrange Pages',
-              ]),
-            ], // Space sections evenly
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                buildToolSection(
+                  context: context,
+                  title: 'Create PDF',
+                  icons: [
+                    Icons.image,
+                    Icons.text_snippet,
+                  ],
+                  names: [
+                    'Create from Images',
+                    'Text to PDF',
+                  ],
+                ),
+                const SizedBox(height: 24),
+                buildToolSection(
+                  context: context,
+                  title: 'Security',
+                  icons: [
+                    Icons.lock,
+                    Icons.lock_open,
+                  ],
+                  names: [
+                    'Add Password',
+                    'Remove Password',
+                  ],
+                ),
+                const SizedBox(height: 24),
+                buildToolSection(
+                  context: context,
+                  title: 'Edit PDF',
+                  icons: [
+                    Icons.merge_type,
+                    Icons.image,
+                    Icons.sort,
+                  ],
+                  names: [
+                    'Combine Files',
+                    'Export to Pictures',
+                    'Arrange Pages',
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -54,35 +82,93 @@ class ToolsScreen extends StatelessWidget {
   }
 }
 
-Widget buildToolSection(
-    {required String title,
-    required List<IconData> icons,
-    required List<String> names}) {
+Widget buildToolSection({
+  required BuildContext context,
+  required String title,
+  required List<IconData> icons,
+  required List<String> names,
+}) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       Text(
         title,
         style: const TextStyle(
-            fontSize: 18, fontFamily: 'Lato', fontWeight: FontWeight.bold),
+          fontSize: 18,
+          fontFamily: 'Lato',
+          fontWeight: FontWeight.bold,
+        ),
       ),
       const SizedBox(height: 12),
       Wrap(
         spacing: 15, // Space buttons evenly
-        children: List.generate(icons.length,
-            (index) => buildToolButton(icons[index], names[index])),
+        children: List.generate(
+          icons.length,
+          (index) => buildToolButton(
+            context,
+            icons[index],
+            names[index],
+          ),
+        ),
       ),
     ],
   );
 }
 
-Widget buildToolButton(IconData icon, String name) {
+Widget buildToolButton(BuildContext context, IconData icon, String name) {
   return InkWell(
     borderRadius: BorderRadius.circular(16.0),
     splashColor: const Color.fromARGB(255, 167, 197, 250),
-    // Wrap with InkWell for clickability
-    onTap: () {
+    onTap: () async {
       print('Button Pressed: $name');
+
+      if (name == 'Create from Images') {
+        final generator = MultiImagePdfGenerator(context);
+        String? filepath = await generator.pickAndConvertImagesToPdf();
+        if (filepath != null) {
+          openPDF(context, File(filepath));
+        }
+      }
+
+      if (name == 'Text to PDF') {
+        final generator = TextPdfGenerator(context);
+        String? filepath = await generator.pickAndConvertTextToPdf();
+        if (filepath != null) {
+          openPDF(context, File(filepath));
+        }
+      }
+
+      if (name == 'Add Password') {
+        FilePickerResult? result = await FilePicker.platform.pickFiles(
+          type: FileType.custom,
+          allowedExtensions: ['pdf'],
+        );
+
+        if (result != null && result.files.isNotEmpty) {
+          File file = File(result.files.single.path!);
+          showDialog(
+            context: context,
+            builder: (context) =>
+                PasswordDialog(file: file, isAddingPassword: true),
+          );
+        }
+      }
+
+      if (name == 'Remove Password') {
+        FilePickerResult? result = await FilePicker.platform.pickFiles(
+          type: FileType.custom,
+          allowedExtensions: ['pdf'],
+        );
+
+        if (result != null && result.files.isNotEmpty) {
+          File file = File(result.files.single.path!);
+          showDialog(
+            context: context,
+            builder: (context) =>
+                PasswordDialog(file: file, isAddingPassword: false),
+          );
+        }
+      }
     },
     child: Container(
       width: 120,
@@ -95,15 +181,29 @@ Widget buildToolButton(IconData icon, String name) {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 35), // Increased icon size
+          Icon(icon, size: 35),
           const SizedBox(height: 8),
           Text(
-            textAlign: TextAlign.center,
             name,
+            textAlign: TextAlign.center,
             style: const TextStyle(fontFamily: 'Lato', fontSize: 14),
           ),
         ],
       ),
+    ),
+  );
+}
+
+void openPDF(BuildContext context, File file) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  List<String>? recentFiles = prefs.getStringList('recentFiles') ?? [];
+  recentFiles.insert(0, file.path);
+  await prefs.setStringList('recentFiles', recentFiles);
+  await _pdfEditorKeys.currentState?.loadFiles();
+
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (context) => PDFViewerPage(file: file, key: UniqueKey()),
     ),
   );
 }

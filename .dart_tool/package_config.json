@@ -38,6 +38,18 @@
       "languageVersion": "2.18"
     },
     {
+      "name": "barcode",
+      "rootUri": "file:///C:/Users/tkmun/AppData/Local/Pub/Cache/hosted/pub.dev/barcode-2.2.6",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "bidi",
+      "rootUri": "file:///C:/Users/tkmun/AppData/Local/Pub/Cache/hosted/pub.dev/bidi-2.0.10",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "boolean_selector",
       "rootUri": "file:///C:/Users/tkmun/AppData/Local/Pub/Cache/hosted/pub.dev/boolean_selector-2.1.1",
       "packageUri": "lib/",
@@ -662,6 +674,12 @@
       "languageVersion": "3.0"
     },
     {
+      "name": "path_parsing",
+      "rootUri": "file:///C:/Users/tkmun/AppData/Local/Pub/Cache/hosted/pub.dev/path_parsing-1.0.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "path_provider",
       "rootUri": "file:///C:/Users/tkmun/AppData/Local/Pub/Cache/hosted/pub.dev/path_provider-2.1.2",
       "packageUri": "lib/",
@@ -696,6 +714,12 @@
       "rootUri": "file:///C:/Users/tkmun/AppData/Local/Pub/Cache/hosted/pub.dev/path_provider_windows-2.2.1",
       "packageUri": "lib/",
       "languageVersion": "2.19"
+    },
+    {
+      "name": "pdf",
+      "rootUri": "file:///C:/Users/tkmun/AppData/Local/Pub/Cache/hosted/pub.dev/pdf-3.10.8",
+      "packageUri": "lib/",
+      "languageVersion": "2.18"
     },
     {
       "name": "pdfx",
@@ -786,6 +810,12 @@
       "rootUri": "file:///C:/Users/tkmun/AppData/Local/Pub/Cache/hosted/pub.dev/pubspec_parse-1.2.3",
       "packageUri": "lib/",
       "languageVersion": "2.18"
+    },
+    {
+      "name": "qr",
+      "rootUri": "file:///C:/Users/tkmun/AppData/Local/Pub/Cache/hosted/pub.dev/qr-3.0.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.16"
     },
     {
       "name": "receive_sharing_intent",
@@ -900,6 +930,12 @@
       "rootUri": "file:///C:/Users/tkmun/AppData/Local/Pub/Cache/hosted/pub.dev/source_span-1.10.0",
       "packageUri": "lib/",
       "languageVersion": "2.18"
+    },
+    {
+      "name": "spreadsheet_decoder",
+      "rootUri": "file:///C:/Users/tkmun/AppData/Local/Pub/Cache/hosted/pub.dev/spreadsheet_decoder-2.2.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.16"
     },
     {
       "name": "sprintf",
@@ -1166,7 +1202,7 @@
       "languageVersion": "3.3"
     }
   ],
-  "generated": "2024-03-28T12:06:38.582067Z",
+  "generated": "2024-03-28T21:52:25.194281Z",
   "generator": "pub",
   "generatorVersion": "3.3.2"
 }

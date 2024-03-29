@@ -10,7 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:open_file/open_file.dart';
 import 'package:flutter/services.dart';
-import 'HomePage/RenameDialogue.dart';
+import 'package:pdfeditor/widget/RenameDialogue.dart';
 import 'HomePage/DeleteDialogue.dart';
 import 'HomePage/sort file.dart';
 import 'HomePage/SearchPage.dart';
