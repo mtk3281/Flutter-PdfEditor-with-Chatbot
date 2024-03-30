@@ -179,11 +179,12 @@ class _SearchPageState extends State<SearchPage> {
                   ],
                 ))),
       ),
-      body: Stack(
+      body:
+       Stack(
         alignment: Alignment.bottomRight,
         children: [
           Padding(
-            padding: const EdgeInsets.only(left: 30, right: 20, top: 10),
+            padding: const EdgeInsets.only(left: 15, right: 15),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -220,6 +221,7 @@ class _SearchPageState extends State<SearchPage> {
         ],
       ),
     );
+
   }
 
   Widget _buildToggleButton(String text, bool isSelected) {
@@ -345,7 +347,7 @@ class _SearchPageState extends State<SearchPage> {
                     children: [
                       Padding(
                         padding:
-                            const EdgeInsets.only(left: 30, right: 20, top: 10),
+                            const EdgeInsets.only(left: 20, right: 20, top: 10),
                         child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
@@ -367,7 +369,8 @@ class _SearchPageState extends State<SearchPage> {
                                       color: const Color.fromARGB(255, 234, 234, 234),
                                       borderRadius: BorderRadius.circular(16.0),
                                     ),
-                                    child: Column(
+                                    child: 
+                                    Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Image.asset(
@@ -375,10 +378,10 @@ class _SearchPageState extends State<SearchPage> {
                                           width: MediaQuery.of(context)
                                                   .size
                                                   .width -
-                                              120,
+                                              180,
                                           fit: BoxFit.cover,
                                         ),
-                                        const SizedBox(height: 20.0),
+                                        const SizedBox(height: 5.0),
                                         const Text(
                                           'No Recent Searches',
                                           style: TextStyle(
@@ -445,29 +448,33 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  ListTile PdfListTile(String filePath, BuildContext context) {
-    var type = {
-      "txt": "text/plain",
-      "doc": "application/msword",
-      "docx":
-          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "ppt": "application/vnd.ms-powerpoint",
-      "pptx":
-          "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-    };
+  Container PdfListTile(String filePath, BuildContext context) {
+  var type = {
+    "txt": "text/plain",
+    "doc": "application/msword",
+    "docx":
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "ppt": "application/vnd.ms-powerpoint",
+    "pptx":
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  };
 
-    String ext = path.basename(filePath).split('.').last.toLowerCase();
-    String imagepath = 'assets/$ext.png';
+  String ext = path.basename(filePath).split('.').last.toLowerCase();
+  String imagepath = 'assets/$ext.png';
 
-    if (ext == 'pptx') {
-      imagepath = 'assets/ppt.png';
-    }
+  if (ext == 'pptx') {
+    imagepath = 'assets/ppt.png';
+  }
 
-    return ListTile(
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(10))),
+  return Container(
+    margin: EdgeInsets.only(left:0,right: 0,top: 8,bottom: 0),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(15.0),
+    ),
+    child: ListTile(
       title: Text(path.basename(filePath),
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 17),
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
           maxLines: 1,
           overflow: TextOverflow.ellipsis),
       subtitle: Row(
@@ -482,13 +489,13 @@ class _SearchPageState extends State<SearchPage> {
       ),
       leading: Image(
         image: AssetImage(imagepath), // Replace with your image path
-        width: 45, // Adjust width and height as needed
-        height: 45,
+        width: 40, // Adjust width and height as needed
+        height: 40,
         filterQuality: FilterQuality.high,
       ),
       splashColor: Colors.transparent,
       hoverColor: Colors.transparent,
-      minVerticalPadding: 20.0,
+      minVerticalPadding: 16.0,
       onTap: () {
         if (ext == 'pdf') {
           setState(() {
@@ -498,14 +505,18 @@ class _SearchPageState extends State<SearchPage> {
           });
         } else {
           setState(() {
-            OpenFile.open(filePath, type: type[ext]);
+            print("other format");
             _addRecentFile(filePath);
+            Future<OpenResult> res = OpenFile.open(filePath, type: type[ext]);
+            // res.whenComplete(() => _addRecentFile(filePath));
           });
         }
       },
-      contentPadding: const EdgeInsets.only(left: 0, right: 0),
-    );
-  }
+      contentPadding: const EdgeInsets.only(left: 10, right: 16),
+    ),
+  );
+}
+
 
   void openPDF(BuildContext context, File file) => Navigator.of(context).push(
         MaterialPageRoute(

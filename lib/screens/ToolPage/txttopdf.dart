@@ -1,27 +1,39 @@
 import 'dart:io';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart' as syncPdf;
-import 'dart:ui'; // Import Rect from dart:ui
+import 'dart:ui';
 import 'package:pdfeditor/widget/snackbar.dart';
+import 'package:pdfeditor/widget/listview.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class TextPdfGenerator {
   final BuildContext context;
-
   TextPdfGenerator(this.context);
 
+  final prefs = SharedPreferences.getInstance();
+  List<String> txt_files = [];
   Future<String?> pickAndConvertTextToPdf() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['txt'],
-    );
+    final prefs = await SharedPreferences.getInstance();
 
-    if (result == null || result.files.isEmpty) {
+    txt_files = prefs.getStringList('txt_files') ?? [];
+    String? result; // Initialize as nullable
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FileSelectionPage(filepaths: txt_files,type: "Select Text File",),
+      ),
+    ).then((selectedFilePath) {
+      if (selectedFilePath != null) {
+        result = selectedFilePath;
+      }
+    });
+
+    if (result == null) {
       return null;
     }
 
-    final textFile = File(result.files.single.path!);
+    final textFile = File(result!);
 
     try {
       final pdfDocument = syncPdf.PdfDocument();

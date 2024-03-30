@@ -63,12 +63,12 @@ class _PasswordDialogState extends State<PasswordDialog> {
                           widget.isAddingPassword
                               ? 'Set Password'
                               : 'Remove Password',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 20.0,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(height: 16.0),
+                        const SizedBox(height: 16.0),
                         TextField(
                           controller: _passwordController,
                           obscureText: true,
@@ -83,7 +83,7 @@ class _PasswordDialogState extends State<PasswordDialog> {
                             ),
                           ),
                         ),
-                        SizedBox(height: 16.0),
+                        const SizedBox(height: 16.0),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
@@ -108,17 +108,9 @@ class _PasswordDialogState extends State<PasswordDialog> {
                                 ),
                               ),
                             ),
-                            SizedBox(width: 8.0),
+                            const SizedBox(width: 8.0),
                             ElevatedButton(
                               onPressed: () => _performAction(context),
-                              child: Text(
-                                widget.isAddingPassword ? 'Apply' : 'Remove',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
                               style: ElevatedButton.styleFrom(
                                 shadowColor: Colors.transparent,
                                 backgroundColor: Colors.red[600],
@@ -128,6 +120,14 @@ class _PasswordDialogState extends State<PasswordDialog> {
                                 ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(25.0),
+                                ),
+                              ),
+                              child: Text(
+                                widget.isAddingPassword ? 'Apply' : 'Remove',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ),

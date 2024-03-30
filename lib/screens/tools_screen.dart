@@ -6,13 +6,15 @@ import 'HomePage/pdf_viewer_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import 'package:pdfeditor/screens/home_screen.dart';
-import 'package:file_picker/file_picker.dart';
+// import 'package:file_picker/file_picker.dart';
+import 'package:pdfeditor/widget/listview.dart';
+
+final prefs = SharedPreferences.getInstance();
 
 final GlobalKey<PdfEditorState> _pdfEditorKeys = GlobalKey<PdfEditorState>();
 
 class ToolsScreen extends StatelessWidget {
   const ToolsScreen({Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -139,13 +141,22 @@ Widget buildToolButton(BuildContext context, IconData icon, String name) {
       }
 
       if (name == 'Add Password') {
-        FilePickerResult? result = await FilePicker.platform.pickFiles(
-          type: FileType.custom,
-          allowedExtensions: ['pdf'],
-        );
+        String? result; // Initialize as nullable
+        final prefs = await SharedPreferences.getInstance();
+        List<String> pdf_files  = prefs.getStringList('pdfFiles') ?? [];
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => FileSelectionPage(filepaths: pdf_files,type: "Add Password"),
+          ),
+        ).then((selectedFilePath) {
+          if (selectedFilePath != null) {
+            result = selectedFilePath;
+          }
+        });
 
-        if (result != null && result.files.isNotEmpty) {
-          File file = File(result.files.single.path!);
+        if (result != null && result!.isNotEmpty) {
+          File file = File(result!);
           showDialog(
             context: context,
             builder: (context) =>
@@ -155,13 +166,22 @@ Widget buildToolButton(BuildContext context, IconData icon, String name) {
       }
 
       if (name == 'Remove Password') {
-        FilePickerResult? result = await FilePicker.platform.pickFiles(
-          type: FileType.custom,
-          allowedExtensions: ['pdf'],
-        );
+       String? result; // Initialize as nullable
+        final prefs = await SharedPreferences.getInstance();
+        List<String> pdf_files  = prefs.getStringList('pdfFiles') ?? [];
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => FileSelectionPage(filepaths: pdf_files,type: "Remove Password",),
+          ),
+        ).then((selectedFilePath) {
+          if (selectedFilePath != null) {
+            result = selectedFilePath;
+          }
+        });
 
-        if (result != null && result.files.isNotEmpty) {
-          File file = File(result.files.single.path!);
+        if (result != null && result!.isNotEmpty) {
+          File file = File(result!);
           showDialog(
             context: context,
             builder: (context) =>

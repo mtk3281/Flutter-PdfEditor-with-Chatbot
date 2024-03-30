@@ -14,6 +14,7 @@ import 'package:pdfeditor/widget/RenameDialogue.dart';
 import 'HomePage/DeleteDialogue.dart';
 import 'HomePage/sort file.dart';
 import 'HomePage/SearchPage.dart';
+import 'package:pdfeditor/screens/HomePage/loadfile.dart';
 
 void main() {
   bool isBookmarked = false;
@@ -99,6 +100,7 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _scrollController.addListener(_onScroll);
     loadFiles();
+    // scanfiles();
   }
 
   void loadBookmarks() {
@@ -156,6 +158,31 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
+  // Future<void> _scanPdfFiles() async {
+  //   print("Scanning");
+  //   if (pdf_files.isEmpty &&
+  //       word_files.isEmpty &&
+  //       ppt_files.isEmpty &&
+  //       txt_files.isEmpty) {
+  //     setState(() {
+  //       Loading = true;
+  //     });
+  //   }
+  //   scanFiles = await FileFinder.findFiles(
+  //       'storage/emulated/0', ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'txt']);
+  //   pdf_files = scanFiles['pdf']?.toList() ?? [];
+  //   word_files = (scanFiles['doc']?.toList() ?? []) +
+  //       (scanFiles['docx']?.toList() ?? []);
+  //   ppt_files = (scanFiles['ppt']?.toList() ?? []) +
+  //       (scanFiles['pptx']?.toList() ?? []);
+  //   txt_files = scanFiles['txt']?.toList() ?? [];
+  //   updateRecents();
+  //   await _saveFiles();
+  //   setState(() {
+  //     Loading = false;
+  //   });
+  // }
+
   Future<void> _scanPdfFiles() async {
     print("Scanning");
 
@@ -167,22 +194,58 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
         Loading = true;
       });
     }
-    scanFiles = await FileFinder.findFiles(
-        'storage/emulated/0', ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'txt']);
 
-    pdf_files = scanFiles['pdf']?.toList() ?? [];
-    word_files = (scanFiles['doc']?.toList() ?? []) +
-        (scanFiles['docx']?.toList() ?? []);
-    ppt_files = (scanFiles['ppt']?.toList() ?? []) +
-        (scanFiles['pptx']?.toList() ?? []);
-    txt_files = scanFiles['txt']?.toList() ?? [];
+    try {
+      List<String>? filePaths = await FileSystemService.getAllFilePaths();
+      Set<String>? set = filePaths!.toSet();
+      filePaths = set.toList();
 
-    updateRecents();
+      String sortBy = 'File';
+      String orderBy = 'Ascending';
+
+      if (filePaths != null) {
+        pdf_files.clear();
+        word_files.clear();
+        ppt_files.clear();
+        txt_files.clear();
+        for (String filePath in filePaths) {
+          String extension = filePath.split('.').last.toLowerCase();
+          if (extension == 'pdf') {
+            pdf_files.add(filePath);
+          } else if (extension == 'doc' || extension == 'docx') {
+            word_files.add(filePath);
+          } else if (extension == 'ppt' || extension == 'pptx') {
+            ppt_files.add(filePath);
+          } else if (extension == 'txt') {
+            txt_files.add(filePath);
+          }
+        }
+        print("done scanning");
+      }
+        sortPathfile(sortBy, orderBy);
+
+      // Update UI after scanning is completed
+      setState(() {
+        Loading = false; // Move Loading state update here
+      });
+
+      // Print the number of files in each category
+      print("PDF Files: ${pdf_files.length}");
+      print("Word Files: ${word_files.length}");
+      print("PPT Files: ${ppt_files.length}");
+      print("TXT Files: ${txt_files.length}");
+
+      // Update recents and save files
+  updateRecents();
     await _saveFiles();
     setState(() {
       Loading = false;
     });
+    } catch (e) {
+      print("Error during scanning and saving files: $e");
+    }
   }
+
 
   Future<void> loadFiles() async {
     print("Loading");
@@ -330,7 +393,7 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
     setState(() {});
   }
 
-  Future<void> sortPathfile(String sortBy, String orderBy) async {
+void sortPathfile(String sortBy, String orderBy) async {
     setState(() {
       switch (sortBy) {
         case "File":
@@ -470,7 +533,7 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[200],
       appBar: AppBar(
         backgroundColor:
             _getSelectedOptionColor(), // Dynamic color based on selection
@@ -581,7 +644,7 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
                   }
                 });
               },
-              color: const Color.fromARGB(255, 142, 142, 142),
+              color: Color.fromARGB(255, 191, 177, 177),
               selectedColor: const Color.fromARGB(255, 255, 255, 255),
               selectedBorderColor: Colors.transparent,
               fillColor: Colors.transparent,
@@ -594,31 +657,31 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
                 Padding(
                   padding: EdgeInsets.only(left: 16.0, right: 16),
                   child: Text(
-                    'PDF',
+                    'PDF',style: TextStyle(fontSize: 17),
                   ),
                 ),
                 Padding(
                   padding: EdgeInsets.only(left: 16.0, right: 16),
                   child: Text(
-                    'Word',
+                    'Word',style: TextStyle(fontSize: 17),
                   ),
                 ),
                 Padding(
                   padding: EdgeInsets.only(left: 16.0, right: 16),
                   child: Text(
-                    'PPT',
+                    'PPT',style: TextStyle(fontSize: 17),
                   ),
                 ),
                 Padding(
                   padding: EdgeInsets.only(left: 16.0, right: 16),
                   child: Text(
-                    'Text',
+                    'Text',style: TextStyle(fontSize: 17),
                   ),
                 ),
                 Padding(
                   padding: EdgeInsets.only(left: 16.0, right: 16),
                   child: Text(
-                    'Recents',
+                    'Recents',style: TextStyle(fontSize: 17),
                   ),
                 ),
               ],
@@ -639,7 +702,7 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
                   visible: Loading,
                   child: const Center(child: CircularProgressIndicator())),
               Padding(
-                padding: const EdgeInsets.only(left: 30, right: 20, top: 10),
+                padding: const EdgeInsets.only(left: 10, right: 10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -854,8 +917,7 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
             ? RefreshIndicator(
                 color: Colors.black,
                 onRefresh: () {
-                  _saveFiles();
-                  loadFiles();
+                  _scanPdfFiles();
                   return Future<void>.value();
                 },
                 child: ListView.builder(
@@ -882,7 +944,7 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
                       width: double.infinity,
                       padding: const EdgeInsets.all(25.0),
                       decoration: BoxDecoration(
-                        color: const Color.fromARGB(255, 255, 255, 255),
+                        color: Colors.grey[200],
                         borderRadius: BorderRadius.circular(16.0),
                       ),
                       child: Column(
@@ -890,10 +952,10 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
                         children: [
                           Image.asset(
                             'assets/no-recent-search.png',
-                            width: MediaQuery.of(context).size.width - 120,
+                            width: MediaQuery.of(context).size.width - 140,
                             fit: BoxFit.cover,
                           ),
-                          const SizedBox(height: 20.0),
+                          const SizedBox(height: 15.0),
                           Text(
                             'No $emptyText Files',
                             style: TextStyle(
@@ -917,7 +979,7 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
       width: double.infinity,
       padding: const EdgeInsets.all(25.0),
       decoration: BoxDecoration(
-        color: Color.fromARGB(255, 255, 255, 255),
+        color: Colors.grey[200],
         borderRadius: BorderRadius.circular(16.0),
       ),
       child: Column(
@@ -1035,29 +1097,33 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
     return intl.DateFormat('MMM d, y, HH:mm a').format(date).toString();
   }
 
-  ListTile PdfListTile(String filePath, BuildContext context) {
-    var type = {
-      "txt": "text/plain",
-      "doc": "application/msword",
-      "docx":
-          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "ppt": "application/vnd.ms-powerpoint",
-      "pptx":
-          "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-    };
+  Container PdfListTile(String filePath, BuildContext context) {
+  var type = {
+    "txt": "text/plain",
+    "doc": "application/msword",
+    "docx":
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "ppt": "application/vnd.ms-powerpoint",
+    "pptx":
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  };
 
-    String ext = path.basename(filePath).split('.').last.toLowerCase();
-    String imagepath = 'assets/$ext.png';
+  String ext = path.basename(filePath).split('.').last.toLowerCase();
+  String imagepath = 'assets/$ext.png';
 
-    if (ext == 'pptx') {
-      imagepath = 'assets/ppt.png';
-    }
+  if (ext == 'pptx') {
+    imagepath = 'assets/ppt.png';
+  }
 
-    return ListTile(
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(10))),
+  return Container(
+    margin: EdgeInsets.only(left:0,right: 0,top: 8,bottom: 0),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(15.0),
+    ),
+    child: ListTile(
       title: Text(path.basename(filePath),
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 17),
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
           maxLines: 1,
           overflow: TextOverflow.ellipsis),
       subtitle: Row(
@@ -1072,8 +1138,8 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
       ),
       leading: Image(
         image: AssetImage(imagepath), // Replace with your image path
-        width: 45, // Adjust width and height as needed
-        height: 45,
+        width: 43, // Adjust width and height as needed
+        height: 43,
         filterQuality: FilterQuality.high,
       ),
       trailing: IconButton(
@@ -1083,7 +1149,7 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
           }),
       splashColor: Colors.transparent,
       hoverColor: Colors.transparent,
-      minVerticalPadding: 20.0,
+      minVerticalPadding: 16.0,
       onTap: () {
         if (ext == 'pdf') {
           setState(() {
@@ -1100,9 +1166,11 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
           });
         }
       },
-      contentPadding: const EdgeInsets.only(left: 0, right: 0),
-    );
-  }
+      contentPadding: const EdgeInsets.only(left: 10, right: 6),
+    ),
+  );
+}
+
 
   void openPDF(BuildContext context, File file) => Navigator.of(context).push(
         MaterialPageRoute(
