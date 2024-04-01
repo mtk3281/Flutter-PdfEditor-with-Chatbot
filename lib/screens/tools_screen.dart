@@ -148,19 +148,7 @@ Widget buildToolButton(BuildContext context, IconData icon, String name) {
       }
 
       if (name == 'Add Password') {
-        String? result; // Initialize as nullable
-        final prefs = await SharedPreferences.getInstance();
-        List<String> pdf_files  = prefs.getStringList('pdfFiles') ?? [];
-        await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => FileSelectionPage(filepaths: pdf_files,type: "Add Password"),
-          ),
-        ).then((selectedFilePath) {
-          if (selectedFilePath != null) {
-            result = selectedFilePath;
-          }
-        });
+         String? result = await selectfiles(context,name);
 
         if (result != null && result!.isNotEmpty) {
           File file = File(result!);
@@ -183,25 +171,12 @@ Widget buildToolButton(BuildContext context, IconData icon, String name) {
               250, // Width of the SnackBar
             ),
           );
-          }
-          
+          }         
         }
       }
 
       if (name == 'Remove Password') {
-       String? result; // Initialize as nullable
-        final prefs = await SharedPreferences.getInstance();
-        List<String> pdf_files  = prefs.getStringList('pdfFiles') ?? [];
-        await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => FileSelectionPage(filepaths: pdf_files,type: "Remove Password",),
-          ),
-        ).then((selectedFilePath) {
-          if (selectedFilePath != null) {
-            result = selectedFilePath;
-          }
-        });
+       String? result = await selectfiles(context,name);
 
         if (result != null && result!.isNotEmpty) {
           File file = File(result!);
@@ -230,23 +205,17 @@ Widget buildToolButton(BuildContext context, IconData icon, String name) {
 
       if (name == 'Print pdf')
       {
-         String? result; // Initialize as nullable
-        final prefs = await SharedPreferences.getInstance();
-        List<String> pdf_files  = prefs.getStringList('pdfFiles') ?? [];
-        await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => FileSelectionPage(filepaths: pdf_files,type: "Select a file"),
-          ),
-        ).then((selectedFilePath) {
-          if (selectedFilePath != null) {
-            result = selectedFilePath;
-          }
-        });
+        String? result = await selectfiles(context,"Select a file");
 
         if (result != null && result!.isNotEmpty) {
           printPDF(context,result!);
         }
+      }
+
+      if (name=="Combine Files")
+      {
+        List<String> _selectedFilePaths = await selectmultiplefiles(context,name);
+        print(_selectedFilePaths);
       }
     },
     child: Container(
@@ -272,6 +241,49 @@ Widget buildToolButton(BuildContext context, IconData icon, String name) {
     ),
   );
 }
+
+Future<String?> selectfiles(BuildContext context,String name) async {
+   String? result; // Initialize as nullable
+   final prefs = await SharedPreferences.getInstance();
+   List<String> pdf_files  = prefs.getStringList('pdfFiles') ?? [];
+   await Navigator.push(
+     context,
+     MaterialPageRoute(
+       builder: (context) => FileSelectionPage(filepaths: pdf_files,type: name,multipleChoice:false),
+     ),
+   ).then((selectedFilePath) {
+     if (selectedFilePath != null) {
+       result = selectedFilePath;
+     }
+   });
+  return result;
+}
+
+Future<List<String>> selectmultiplefiles(BuildContext context,String name) async {
+  List<String> result = [];
+  final prefs = await SharedPreferences.getInstance();
+  List<String> pdfFiles = prefs.getStringList('pdfFiles') ?? [];
+
+  await Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => FileSelectionPage(
+        filepaths: pdfFiles,
+        type: name,
+        multipleChoice: true,
+      ),
+    ),
+  ).then((selectedFilePath) {
+    if (selectedFilePath != null) {
+      result = selectedFilePath;
+    } else {
+      // Handle no files selected
+    }
+  });
+
+  return result;
+}
+
 Future<bool> isPdfPasswordProtected(File file) async {
   bool isProtected = false;
   PdfDocument? document = null; // Assigning null as a default value
