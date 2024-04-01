@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as path;
 import 'package:intl/intl.dart' as intl;
+import 'package:pdfeditor/widget/searchpdf.dart';
+
 
 class FileSelectionPage extends StatefulWidget {
   final List<String> filepaths;
@@ -28,8 +30,40 @@ class _FileSelectionPageState extends State<FileSelectionPage> {
             Navigator.pop(context, null); // Return selected file path
           },
         ),
+        actions: [
+                
+                IconButton(
+                  icon: const Icon(
+                    Icons.search,
+                    color: Colors.black,
+                    size: 30,
+                  ),
+                  onPressed: () async{
+                    String? result;
+                    await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SearchPage(),
+                          ),
+                        ).then((selectedFilePath) {
+                          if (selectedFilePath != null) {
+                            result = selectedFilePath;
+                          }
+                        });
+                        if (result != null && result!.isNotEmpty) {
+                        setState(() {
+                         _selectedFilePath = result; // Update selected file path
+                       });
+                        }
+                      Navigator.pop(context, _selectedFilePath);
+                   
+                  },
+                ),
+
+                ],
         title: Text('${widget.type}',
             style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20)),
+        
       ),
       body: Container(
         color: Colors.grey[100], // Set body color to grey
@@ -43,7 +77,15 @@ class _FileSelectionPageState extends State<FileSelectionPage> {
       itemCount: widget.filepaths.length,
       itemBuilder: (context, index) {
         String filePath = widget.filepaths[index];
+        if(File(filePath).existsSync())
+        {
         return _buildListTile(filePath);
+
+        }
+        else
+        {
+           return const SizedBox();
+        }
       },
     );
   }

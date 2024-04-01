@@ -8,7 +8,7 @@ final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
 class PasswordDialog extends StatefulWidget {
   final File file;
-  final bool isAddingPassword; // Flag to determine add/remove password
+  final bool isAddingPassword;
 
   const PasswordDialog(
       {Key? key, required this.file, this.isAddingPassword = true})
@@ -154,11 +154,13 @@ class _PasswordDialogState extends State<PasswordDialog> {
           PdfDocument document = PdfDocument(inputBytes: bytes);
           document.security.ownerPassword = password;
           document.security.userPassword = password;
-          document.security.permissions.addAll([
-            PdfPermissionsFlags.print,
-            PdfPermissionsFlags.fullQualityPrint,
-            PdfPermissionsFlags.copyContent
-          ]);
+          document.security.permissions.addAll(<PdfPermissionsFlags>[
+              PdfPermissionsFlags.editContent,
+              PdfPermissionsFlags.copyContent,
+              PdfPermissionsFlags.editAnnotations,
+              PdfPermissionsFlags.fillFields,
+              PdfPermissionsFlags.assembleDocument,
+              PdfPermissionsFlags.fullQualityPrint]);
           final List<int> outputBytes = await document.save();
 
           final downloadsDirectory = Directory('/storage/emulated/0/Download');

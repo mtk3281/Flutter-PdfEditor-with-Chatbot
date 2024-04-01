@@ -140,7 +140,7 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _scrollController.removeListener(_onScroll);
-    _saveFiles(); // Save recent files when the app is disposed
+    _saveFiles();
     super.dispose();
   }
 
@@ -222,7 +222,7 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
         }
         print("done scanning");
       }
-        sortPathfile(sortBy, orderBy);
+      sortPathfile(sortBy, orderBy);
 
       // Update UI after scanning is completed
       setState(() {
@@ -238,6 +238,7 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
       // Update recents and save files
   updateRecents();
     await _saveFiles();
+    await loadFiles();
     setState(() {
       Loading = false;
     });
@@ -268,6 +269,7 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
     print("Saving");
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setStringList('pdfFiles', pdf_files); // Await saving operation
+    
     await prefs.setStringList('recentFiles', _RecentsFiles);
     await prefs.setStringList('word_files', word_files);
     await prefs.setStringList('ppt_files', ppt_files);
@@ -394,7 +396,6 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
 void sortPathfile(String sortBy, String orderBy) async {
-    setState(() {
       switch (sortBy) {
         case "File":
           if (orderBy == "Ascending") {
@@ -485,9 +486,7 @@ void sortPathfile(String sortBy, String orderBy) async {
           }
           break;
       }
-    });
 
-    setState(() async {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setStringList(
           'pdfFiles', pdf_files); // Await saving operation
@@ -496,7 +495,9 @@ void sortPathfile(String sortBy, String orderBy) async {
       await prefs.setStringList('ppt_files', ppt_files);
       await prefs.setStringList('txt_files', txt_files);
       await prefs.setStringList("bookmarked", Bookmarked);
-    });
+
+
+
   }
 
   String _getBaseName(String filePath) {

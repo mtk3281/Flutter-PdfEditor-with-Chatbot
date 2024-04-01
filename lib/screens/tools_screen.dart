@@ -8,6 +8,9 @@ import 'dart:io';
 import 'package:pdfeditor/screens/home_screen.dart';
 // import 'package:file_picker/file_picker.dart';
 import 'package:pdfeditor/widget/listview.dart';
+import 'package:syncfusion_flutter_pdf/pdf.dart';
+import 'package:pdfeditor/widget/snackbar.dart';
+import 'ToolPage/printingpdf.dart';
 
 final prefs = SharedPreferences.getInstance();
 
@@ -65,13 +68,13 @@ class ToolsScreen extends StatelessWidget {
                   context: context,
                   title: 'Edit PDF',
                   icons: [
-                    Icons.merge_type,
+                    Icons.print_rounded,
                     Icons.image,
                     Icons.sort,
                   ],
                   names: [
+                    'Print pdf',
                     'Combine Files',
-                    'Export to Pictures',
                     'Arrange Pages',
                   ],
                 ),
@@ -82,7 +85,11 @@ class ToolsScreen extends StatelessWidget {
       ),
     );
   }
+
+
+
 }
+
 
 Widget buildToolSection({
   required BuildContext context,
@@ -157,11 +164,27 @@ Widget buildToolButton(BuildContext context, IconData icon, String name) {
 
         if (result != null && result!.isNotEmpty) {
           File file = File(result!);
-          showDialog(
+
+          bool isProtected= await isPdfPasswordProtected(file);
+
+          if (!isProtected)
+          {
+            showDialog(
             context: context,
             builder: (context) =>
                 PasswordDialog(file: file, isAddingPassword: true),
+            );
+          }
+          else
+          {
+             ScaffoldMessenger.of(context).showSnackBar(
+            buildCustomSnackBar(
+              'PDF already has password',
+              250, // Width of the SnackBar
+            ),
           );
+          }
+          
         }
       }
 
@@ -182,11 +205,47 @@ Widget buildToolButton(BuildContext context, IconData icon, String name) {
 
         if (result != null && result!.isNotEmpty) {
           File file = File(result!);
-          showDialog(
+          bool isProtected= await isPdfPasswordProtected(file);
+
+          if (isProtected)
+          {
+            showDialog(
             context: context,
             builder: (context) =>
-                PasswordDialog(file: file, isAddingPassword: false),
+                PasswordDialog(file: file, isAddingPassword: true),
+            );
+          }
+          else
+          {
+             ScaffoldMessenger.of(context).showSnackBar(
+            buildCustomSnackBar(
+              'PDF does not have a password',
+              270, // Width of the SnackBar
+            ),
           );
+
+          }
+        }
+      }
+
+      if (name == 'Print pdf')
+      {
+         String? result; // Initialize as nullable
+        final prefs = await SharedPreferences.getInstance();
+        List<String> pdf_files  = prefs.getStringList('pdfFiles') ?? [];
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => FileSelectionPage(filepaths: pdf_files,type: "Select a file"),
+          ),
+        ).then((selectedFilePath) {
+          if (selectedFilePath != null) {
+            result = selectedFilePath;
+          }
+        });
+
+        if (result != null && result!.isNotEmpty) {
+          printPDF(context,result!);
         }
       }
     },
@@ -213,6 +272,22 @@ Widget buildToolButton(BuildContext context, IconData icon, String name) {
     ),
   );
 }
+Future<bool> isPdfPasswordProtected(File file) async {
+  bool isProtected = false;
+  PdfDocument? document = null; // Assigning null as a default value
+
+  try {
+    // Attempt to load the PDF without providing a password
+    document = PdfDocument(inputBytes: file.readAsBytesSync());
+  } catch (e) {
+    // If loading without a password throws an error, the PDF is password protected
+    isProtected = true;
+  }
+  // Dispose the document if it was successfully loaded
+  document?.dispose();
+  return isProtected;
+}
+
 
 void openPDF(BuildContext context, File file) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -227,3 +302,6 @@ void openPDF(BuildContext context, File file) async {
     ),
   );
 }
+
+
+
