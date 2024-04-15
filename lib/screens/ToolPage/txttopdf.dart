@@ -4,19 +4,20 @@ import 'package:syncfusion_flutter_pdf/pdf.dart' as syncPdf;
 import 'dart:ui';
 import 'package:pdfeditor/widget/snackbar.dart';
 import 'package:pdfeditor/widget/listview.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hive/hive.dart';
 
 class TextPdfGenerator {
   final BuildContext context;
   TextPdfGenerator(this.context);
 
-  final prefs = SharedPreferences.getInstance();
-  List<String> txt_files = [];
-  Future<String?> pickAndConvertTextToPdf() async {
-    final prefs = await SharedPreferences.getInstance();
 
-    txt_files = prefs.getStringList('txt_files') ?? [];
-    String? result; // Initialize as nullable
+  List<String> txt_files = [];
+
+  Future<String?> pickAndConvertTextToPdf() async {
+    final box = await Hive.openBox('fileBox');
+    txt_files = List<String>.from(box.get('txt_files', defaultValue: []));
+    await box.close();
+    String? result;
 
     await Navigator.push(
       context,

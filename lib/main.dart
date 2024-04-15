@@ -5,7 +5,6 @@ import 'package:sliding_clipped_nav_bar/sliding_clipped_nav_bar.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'screens/HomePage/pdf_viewer_page.dart';
 import 'dart:io';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pdfeditor/screens/Chatbot/core/app/app.dart';
 import 'package:pdfeditor/screens/Chatbot/feature/hive/model/chat_bot/chat_bot.dart';
 import 'package:flutter/foundation.dart';
@@ -15,6 +14,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:loggy/loggy.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:hive/hive.dart';
 
 final List<GlobalKey<PdfEditorState>> _pdfEditorKeys = [
   GlobalKey<PdfEditorState>(),
@@ -73,10 +73,13 @@ void _initGoogleFonts() {
 }
 
 void openPDF(BuildContext context, File file) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  List<String>? recentFiles = prefs.getStringList('recentFiles') ?? [];
+  var box = await Hive.openBox('fileBox');
+  List<String>? recentFiles =  List<String>.from(box.get('recentFiles', defaultValue: []));
+  // SharedPreferences prefs = await SharedPreferences.getInstance();
+  // List<String>? recentFiles = prefs.getStringList('recentFiles') ?? [];
   recentFiles.insert(0, file.path);
-  await prefs.setStringList('recentFiles', recentFiles);
+  await box.put('recentFiles', recentFiles);
+  // await prefs.setStringList('recentFiles', recentFiles);
   await _pdfEditorKeys[0].currentState?.loadFiles();
   await _pdfEditorKeys[1].currentState?.loadFiles();
 

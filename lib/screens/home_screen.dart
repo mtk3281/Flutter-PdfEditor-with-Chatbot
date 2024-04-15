@@ -6,7 +6,6 @@ import 'package:path/path.dart' as path;
 import 'dart:io';
 import 'HomePage/pdf_api.dart';
 import 'HomePage/pdf_viewer_page.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:open_file/open_file.dart';
 import 'package:flutter/services.dart';
@@ -15,8 +14,9 @@ import 'HomePage/DeleteDialogue.dart';
 import 'HomePage/sort file.dart';
 import 'HomePage/SearchPage.dart';
 import 'package:pdfeditor/screens/HomePage/loadfile.dart';
+import 'package:hive/hive.dart';
 
-void main() {
+void main() async{
   bool isBookmarked = false;
   WidgetsFlutterBinding.ensureInitialized();
   runApp(MyApp(isBookmarked: isBookmarked));
@@ -100,15 +100,13 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _scrollController.addListener(_onScroll);
     loadFiles();
-    // scanfiles();
   }
 
   void loadBookmarks() {
     if (widget.isBookmarked && !_permStatus) {
       _requestPermission();
     }
-
-    _saveFiles();
+    // _saveFiles();
     loadFiles();
   }
 
@@ -119,15 +117,14 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
   Future<void> _requestPermission() async {
     PermissionStatus status1 = await Permission.storage.request();
     PermissionStatus status2 = await Permission.manageExternalStorage.request();
-
     if (status1.isGranted && status2.isGranted) {
       setState(() {
-        _permStatus = true; // Update _permStatus
+        _permStatus = true;
       });
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('permissionStatus', true);
-      await loadFiles();
-      await prefs.setBool('permissionStatus', _permStatus);
+      var box = await Hive.openBox('permissionBox');
+      await box.put('permissionStatus', true);
+      await box.close();
+      await loadPerm();
       if (_selectedOption == 'PDF files' &&
           pdf_files.isEmpty &&
           !widget.isBookmarked) {
@@ -158,34 +155,8 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
-  // Future<void> _scanPdfFiles() async {
-  //   print("Scanning");
-  //   if (pdf_files.isEmpty &&
-  //       word_files.isEmpty &&
-  //       ppt_files.isEmpty &&
-  //       txt_files.isEmpty) {
-  //     setState(() {
-  //       Loading = true;
-  //     });
-  //   }
-  //   scanFiles = await FileFinder.findFiles(
-  //       'storage/emulated/0', ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'txt']);
-  //   pdf_files = scanFiles['pdf']?.toList() ?? [];
-  //   word_files = (scanFiles['doc']?.toList() ?? []) +
-  //       (scanFiles['docx']?.toList() ?? []);
-  //   ppt_files = (scanFiles['ppt']?.toList() ?? []) +
-  //       (scanFiles['pptx']?.toList() ?? []);
-  //   txt_files = scanFiles['txt']?.toList() ?? [];
-  //   updateRecents();
-  //   await _saveFiles();
-  //   setState(() {
-  //     Loading = false;
-  //   });
-  // }
-
   Future<void> _scanPdfFiles() async {
     print("Scanning");
-
     if (pdf_files.isEmpty &&
         word_files.isEmpty &&
         ppt_files.isEmpty &&
@@ -194,125 +165,114 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
         Loading = true;
       });
     }
-
-    try {
-      List<String>? filePaths = await FileSystemService.getAllFilePaths();
-      Set<String>? set = filePaths!.toSet();
-      filePaths = set.toList();
-
-      String sortBy = 'File';
-      String orderBy = 'Ascending';
-
-      if (filePaths != null) {
-        pdf_files.clear();
-        word_files.clear();
-        ppt_files.clear();
-        txt_files.clear();
-        for (String filePath in filePaths) {
-          String extension = filePath.split('.').last.toLowerCase();
-          if (extension == 'pdf') {
-            pdf_files.add(filePath);
-          } else if (extension == 'doc' || extension == 'docx') {
-            word_files.add(filePath);
-          } else if (extension == 'ppt' || extension == 'pptx') {
-            ppt_files.add(filePath);
-          } else if (extension == 'txt') {
-            txt_files.add(filePath);
-          }
-        }
-        print("done scanning");
-      }
-      sortPathfile(sortBy, orderBy);
-
-      // Update UI after scanning is completed
-      setState(() {
-        Loading = false; // Move Loading state update here
-      });
-
-      // Print the number of files in each category
-      print("PDF Files: ${pdf_files.length}");
-      print("Word Files: ${word_files.length}");
-      print("PPT Files: ${ppt_files.length}");
-      print("TXT Files: ${txt_files.length}");
-
-      // Update recents and save files
-  updateRecents();
+    scanFiles = await FileFinder.findFiles(
+        'storage/emulated/0', ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'txt']);
+    setState(() {
+      pdf_files = scanFiles['pdf'] ?? [];
+      word_files = (scanFiles['doc'] ?? []) +
+          (scanFiles['docx']?.toList() ?? []);
+      ppt_files = (scanFiles['ppt'] ?? []) +
+          (scanFiles['pptx']?.toList() ?? []);
+      txt_files = scanFiles['txt'] ?? [];
+    });
+    String sortBy = 'File';
+    String orderBy = 'Ascending';
+    sortPathfile(sortBy, orderBy);
+    await updateRecents();
     await _saveFiles();
-    await loadFiles();
     setState(() {
       Loading = false;
     });
-    } catch (e) {
-      print("Error during scanning and saving files: $e");
-    }
-  }
-
-
-  Future<void> loadFiles() async {
-    print("Loading");
-
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      pdf_files = prefs.getStringList('pdfFiles') ?? [];
-      _RecentsFiles = prefs.getStringList('recentFiles') ?? [];
-      word_files = prefs.getStringList('word_files') ?? [];
-      ppt_files = prefs.getStringList('ppt_files') ?? [];
-      txt_files = prefs.getStringList('txt_files') ?? [];
-      Bookmarked = prefs.getStringList('bookmarked') ?? [];
-      _permStatus = prefs.getBool('permissionStatus') ?? false;
-      prefs.setStringList('recentFiles', _RecentsFiles);
-    });
-    _len = pdf_files.length;
   }
 
   Future<void> _saveFiles() async {
     print("Saving");
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('pdfFiles', pdf_files); // Await saving operation
-    
-    await prefs.setStringList('recentFiles', _RecentsFiles);
-    await prefs.setStringList('word_files', word_files);
-    await prefs.setStringList('ppt_files', ppt_files);
-    await prefs.setStringList('txt_files', txt_files);
-    await prefs.setStringList("bookmarked", Bookmarked);
-    await prefs.setBool('permissionStatus', _permStatus);
+    var box = await Hive.openBox('fileBox');
+    await box.put('pdfFiles', pdf_files);
+    await box.put('recentFiles', _RecentsFiles);
+    await box.put('word_files', word_files);
+    await box.put('ppt_files', ppt_files);
+    await box.put('txt_files', txt_files);
+    await box.put('bookmarked', Bookmarked);
     _len = pdf_files.length;
+    await box.close(); 
   }
 
-  void updateRecents() {
+  Future<void> loadPerm() async {
+    print("Loading Perm");
+    var perm = await Hive.openBox('permissionBox');
+    setState(() {
+      _permStatus = perm.get('permissionStatus', defaultValue: false);
+    });
+    await perm.close();
+  }
+
+  Future<void> loadFiles() async {
+    print("Loading");
+    var box = await Hive.openBox('fileBox');
+    var perm = await Hive.openBox('permissionBox');
+    setState(() {
+      pdf_files = List<String>.from(box.get('pdfFiles', defaultValue: []));
+      _RecentsFiles = List<String>.from(box.get('recentFiles', defaultValue: []));
+      word_files = List<String>.from(box.get('word_files', defaultValue: []));
+      ppt_files = List<String>.from(box.get('ppt_files', defaultValue: []));
+      txt_files = List<String>.from(box.get('txt_files', defaultValue: []));
+      Bookmarked = List<String>.from(box.get('bookmarked', defaultValue: []));
+      _permStatus = perm.get('permissionStatus', defaultValue: false);
+      _len = pdf_files.length;
+    });
+    await box.close();
+    await perm.close();
+  }
+
+  Future<void> updateRecents() async {
+    print("updateRecents");
+    var box = await Hive.openBox('fileBox');
     List<String> updatedRecents = [];
-    for (var file in _RecentsFiles) {
-      bool fileExists = false;
-      for (var files in scanFiles.values) {
-        if (files.contains(file)) {
-          fileExists = true;
+    if(_RecentsFiles.length !=0)
+    {
+      for (var file in _RecentsFiles) {
+          bool fileExists = false;
+          for (var files in scanFiles.values) {
+            if (files.contains(file)) {
+              fileExists = true;
+              break;
+            }
+          }
+          if (fileExists) {
+            updatedRecents.add(file);
+          }
         }
-      }
-      if (fileExists) {
-        updatedRecents.add(file);
-      }
+        await box.put('recentFiles', updatedRecents);
+        setState(() {
+          _RecentsFiles = updatedRecents;
+        });
     }
-    setState(() {
-      _RecentsFiles = updatedRecents;
-    });
+    await box.close();
+    print("updateRecents complete"); 
+  }
+  
+  void _addRecentFile(String filePath) async { 
+      var box = await Hive.openBox('fileBox');
+      List<String> _RecentsFiles = List<String>.from(box.get('recentFiles', defaultValue: []));
+      setState((){
+        if (_RecentsFiles.contains(filePath)) {
+          _RecentsFiles.remove(filePath);
+        }
+        _RecentsFiles.insert(0, filePath);
+        print(_RecentsFiles.length);
+      });
+      await box.put('recentFiles', _RecentsFiles);
+      await loadFiles();
+      await box.close();
   }
 
-  void _addRecentFile(String filePath) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      if (_RecentsFiles.contains(filePath)) {
-        _RecentsFiles.remove(filePath);
-      }
-      _RecentsFiles.insert(0, filePath);
-
-      prefs.setStringList('recentFiles', _RecentsFiles);
-      _RecentsFiles = prefs.getStringList('recentFiles') ?? [];
-    });
-  }
-
-  void _sortRecentFile() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setStringList('recentFiles', _RecentsFiles);
+  Future<void> _sortRecentFile() async {
+    var box = await Hive.openBox('fileBox');
+    List<String> _RecentsFiles = List<String>.from(box.get('recentFiles', defaultValue: []));
+    _RecentsFiles.sort();
+    await box.put('recentFiles', _RecentsFiles);
+    await box.close();
   }
 
   Color _getSelectedOptionColor() {
@@ -361,9 +321,7 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
     double deltaX = currentX - _dragStartX;
     double deltaY = details.delta.dy;
     _dragOffset = deltaX.clamp(-32.0, 32.0);
-
     _isCategoryChangePending = _dragOffset.abs() > dismissThreshold * 10;
-
     if (deltaY.abs() > 0.5) {
       _dragOffset = 0.0; // Reset offset to prevent category change
       _isCategoryChangePending = false; // Reset category change flag
@@ -486,32 +444,30 @@ void sortPathfile(String sortBy, String orderBy) async {
           }
           break;
       }
-
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setStringList(
-          'pdfFiles', pdf_files); // Await saving operation
-      await prefs.setStringList('recentFiles', _RecentsFiles);
-      await prefs.setStringList('word_files', word_files);
-      await prefs.setStringList('ppt_files', ppt_files);
-      await prefs.setStringList('txt_files', txt_files);
-      await prefs.setStringList("bookmarked", Bookmarked);
-
-
-
+      // SharedPreferences prefs = await SharedPreferences.getInstance();
+      // await prefs.setStringList(
+      //     'pdfFiles', pdf_files); // Await saving operation
+      // await prefs.setStringList('recentFiles', _RecentsFiles);
+      // await prefs.setStringList('word_files', word_files);
+      // await prefs.setStringList('ppt_files', ppt_files);
+      // await prefs.setStringList('txt_files', txt_files);
+      // await prefs.setStringList("bookmarked", Bookmarked);
+      var box = await Hive.openBox('fileBox');
+      await box.put('pdfFiles', pdf_files);
+      await box.put('recentFiles', _RecentsFiles);
+      await box.put('word_files', word_files);
+      await box.put('ppt_files', ppt_files);
+      await box.put('txt_files', txt_files);
+      await box.put('bookmarked', Bookmarked);
+      await box.close();
   }
 
   String _getBaseName(String filePath) {
-    // Split the file path by the platform-specific separator
     List<String> parts = filePath.split(Platform.pathSeparator);
-    // Get the last part of the split path, which represents the file name
     String fileName = parts.last;
-    // Split the file name by the period (.) to separate the base name and extension
     List<String> nameParts = fileName.split('.');
-    // Take the first part of the split string, which represents the base name
     String baseName = nameParts.first;
-    // Trim spaces from the base name
     baseName = baseName.trim();
-    // Return the base name
     return baseName;
   }
 
@@ -521,12 +477,10 @@ void sortPathfile(String sortBy, String orderBy) async {
       if (file.existsSync()) {
         return file.lastModifiedSync();
       } else {
-        // Return a default date if the file doesn't exist
-        return DateTime.now(); // Or any other default date you prefer
+        return DateTime.now();
       }
     } catch (e) {
       print(e);
-      // Re-throw the exception for unexpected errors
       rethrow;
     }
   }
@@ -697,7 +651,6 @@ void sortPathfile(String sortBy, String orderBy) async {
         child: Transform.translate(
           offset: Offset(_dragOffset, 0.0),
           child: Stack(
-            // alignment: Alignment.bottomRight,
             children: [
               Visibility(
                   visible: Loading,
@@ -707,7 +660,6 @@ void sortPathfile(String sortBy, String orderBy) async {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    //check if permission is granted or not
                     Visibility(
                       visible: !_permStatus && !Loading,
                       child: _buildPermissionDeniedScreen(context),
@@ -1160,10 +1112,9 @@ void sortPathfile(String sortBy, String orderBy) async {
           });
         } else {
           setState(() {
-            print("other format");
             _addRecentFile(filePath);
             Future<OpenResult> res = OpenFile.open(filePath, type: type[ext]);
-            // res.whenComplete(() => _addRecentFile(filePath));
+            
           });
         }
       },

@@ -3,16 +3,16 @@ import 'package:pdfeditor/screens/ToolPage/imgtopdf.dart'; // Import the file co
 import 'package:pdfeditor/screens/ToolPage/txttopdf.dart';
 import 'package:pdfeditor/screens/ToolPage/setPassword.dart'; // Import the file containing PasswordProtectPDF
 import 'HomePage/pdf_viewer_page.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import 'package:pdfeditor/screens/home_screen.dart';
-// import 'package:file_picker/file_picker.dart';
 import 'package:pdfeditor/widget/listview.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:pdfeditor/widget/snackbar.dart';
 import 'ToolPage/printingpdf.dart';
+import 'ToolPage/combinepdf.dart';
+import 'HomePage/pdf_api.dart';
+import 'package:hive/hive.dart';
 
-final prefs = SharedPreferences.getInstance();
 
 final GlobalKey<PdfEditorState> _pdfEditorKeys = GlobalKey<PdfEditorState>();
 
@@ -75,7 +75,7 @@ class ToolsScreen extends StatelessWidget {
                   names: [
                     'Print pdf',
                     'Combine Files',
-                    'Arrange Pages',
+                    'Browse PDF',
                   ],
                 ),
               ],
@@ -85,8 +85,6 @@ class ToolsScreen extends StatelessWidget {
       ),
     );
   }
-
-
 
 }
 
@@ -148,7 +146,7 @@ Widget buildToolButton(BuildContext context, IconData icon, String name) {
       }
 
       if (name == 'Add Password') {
-         String? result = await selectfiles(context,name);
+         String? result = await selectfiles(context,name,false);
 
         if (result != null && result!.isNotEmpty) {
           File file = File(result!);
@@ -176,7 +174,7 @@ Widget buildToolButton(BuildContext context, IconData icon, String name) {
       }
 
       if (name == 'Remove Password') {
-       String? result = await selectfiles(context,name);
+       String? result = await selectfiles(context,name,true);
 
         if (result != null && result!.isNotEmpty) {
           File file = File(result!);
@@ -205,17 +203,40 @@ Widget buildToolButton(BuildContext context, IconData icon, String name) {
 
       if (name == 'Print pdf')
       {
-        String? result = await selectfiles(context,"Select a file");
+        String? result = await selectfiles(context,"Select a file",false);
 
         if (result != null && result!.isNotEmpty) {
           printPDF(context,result!);
         }
       }
+      
 
-      if (name=="Combine Files")
-      {
-        List<String> _selectedFilePaths = await selectmultiplefiles(context,name);
+      if (name == "Combine Files") {
+        List<String> _selectedFilePaths = await selectmultiplefiles(context, name);
         print(_selectedFilePaths);
+        String? result = await PdfUtils.combinePdfFiles(_selectedFilePaths, "/storage/emulated/0/Download/combined.pdf");
+      if (result != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+                              buildCustomSnackBar(
+                              'PDF combined successfully ',
+                                270, 
+                              ),
+                            );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+                              buildCustomSnackBar(
+                              'Failed to combine PDF files ',
+                                300, 
+                              ),
+                            );
+      }
+      } 
+
+      if (name=="Browse PDF")
+      {
+        final file = await PDFApi.pickFile();
+        if (file == null) return;
+        openPDF(context, file);
       }
     },
     child: Container(
@@ -242,14 +263,16 @@ Widget buildToolButton(BuildContext context, IconData icon, String name) {
   );
 }
 
-Future<String?> selectfiles(BuildContext context,String name) async {
-   String? result; // Initialize as nullable
-   final prefs = await SharedPreferences.getInstance();
-   List<String> pdf_files  = prefs.getStringList('pdfFiles') ?? [];
+
+Future<String?> selectfiles(BuildContext context,String name,bool password) async {
+  String? result;
+  var box = await Hive.openBox('fileBox');
+  List<String> pdf_files = List<String>.from(box.get('pdfFiles', defaultValue: []));
+  print(pdf_files);
    await Navigator.push(
      context,
      MaterialPageRoute(
-       builder: (context) => FileSelectionPage(filepaths: pdf_files,type: name,multipleChoice:false),
+       builder: (context) => FileSelectionPage(filepaths: pdf_files,type: name,multipleChoice:false,password: password,),
      ),
    ).then((selectedFilePath) {
      if (selectedFilePath != null) {
@@ -261,9 +284,9 @@ Future<String?> selectfiles(BuildContext context,String name) async {
 
 Future<List<String>> selectmultiplefiles(BuildContext context,String name) async {
   List<String> result = [];
-  final prefs = await SharedPreferences.getInstance();
-  List<String> pdfFiles = prefs.getStringList('pdfFiles') ?? [];
-
+  var box = await Hive.openBox('fileBox');
+  List<String> pdfFiles = List<String>.from(box.get('pdfFiles', defaultValue: []));
+  await box.close();
   await Navigator.push(
     context,
     MaterialPageRoute(
@@ -302,10 +325,10 @@ Future<bool> isPdfPasswordProtected(File file) async {
 
 
 void openPDF(BuildContext context, File file) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  List<String>? recentFiles = prefs.getStringList('recentFiles') ?? [];
+  var box = await Hive.openBox('fileBox');
+  List<String>? recentFiles =  List<String>.from(box.get('recentFiles', defaultValue: []));
   recentFiles.insert(0, file.path);
-  await prefs.setStringList('recentFiles', recentFiles);
+  await box.put('recentFiles', recentFiles);
   await _pdfEditorKeys.currentState?.loadFiles();
 
   Navigator.of(context).push(

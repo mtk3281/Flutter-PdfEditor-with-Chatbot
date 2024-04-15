@@ -66,4 +66,7 @@ flutter {
     source '../..'
 }
 
-dependencies {}
+dependencies {
+    implementation 'com.itextpdf:itextpdf:5.5.13.2'
+
+}

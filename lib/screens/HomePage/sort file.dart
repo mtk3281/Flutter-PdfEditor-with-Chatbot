@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Add this import
+import 'package:hive/hive.dart';
+
 
 class FilterModalBottomSheet extends StatefulWidget {
   final Function(String sortBy, String orderBy) onApply;
@@ -11,7 +12,8 @@ class FilterModalBottomSheet extends StatefulWidget {
 }
 
 class _FilterModalBottomSheetState extends State<FilterModalBottomSheet> {
-  late SharedPreferences prefs; // Declare SharedPreferences
+  // late SharedPreferences prefs; // Declare SharedPreferences
+  late Box<String> prefsBox;
   String sortBy = 'File';
   String orderBy = 'Ascending';
   int selectedIndex = 0;
@@ -23,12 +25,34 @@ class _FilterModalBottomSheetState extends State<FilterModalBottomSheet> {
     initPreferences();
   }
 
+  // Future<void> initPreferences() async {
+  //   prefs = await SharedPreferences.getInstance();
+  //   final savedSortBy =
+  //       prefs.getString('sortBy') ?? 'File'; // Default to 'File'
+  //   final savedOrderBy =
+  //       prefs.getString('orderBy') ?? 'Ascending'; // Default to 'Ascending'
+  //   setState(() {
+  //     sortBy = savedSortBy;
+  //     orderBy = savedOrderBy;
+  //     setSelectedIndex(); // Update selected index based on fetched sortBy
+  //     setOrderIndex(); // Update order index based on fetched orderBy
+  //   });
+  //   print(sortBy);
+  //   print(orderBy);
+  // }
+
+  // // Function to persist selected values
+  // void savePreferences() async {
+  //   await prefs.setString('sortBy', sortBy);
+  //   await prefs.setString('orderBy', orderBy);
+  // }
+
+
   Future<void> initPreferences() async {
-    prefs = await SharedPreferences.getInstance();
-    final savedSortBy =
-        prefs.getString('sortBy') ?? 'File'; // Default to 'File'
-    final savedOrderBy =
-        prefs.getString('orderBy') ?? 'Ascending'; // Default to 'Ascending'
+    final hive = await Hive.openBox<String>('preferences');
+    prefsBox = hive;
+    final savedSortBy = prefsBox.get('sortBy') ?? 'File';
+    final savedOrderBy = prefsBox.get('orderBy') ?? 'Ascending';
     setState(() {
       sortBy = savedSortBy;
       orderBy = savedOrderBy;
@@ -40,9 +64,9 @@ class _FilterModalBottomSheetState extends State<FilterModalBottomSheet> {
   }
 
   // Function to persist selected values
-  void savePreferences() async {
-    await prefs.setString('sortBy', sortBy);
-    await prefs.setString('orderBy', orderBy);
+  void savePreferences() {
+    prefsBox.put('sortBy', sortBy);
+    prefsBox.put('orderBy', orderBy);
   }
 
   // Function to set selected index based on sortBy

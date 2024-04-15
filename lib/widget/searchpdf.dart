@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:open_file/open_file.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:hive/hive.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -28,15 +28,22 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Future<void> loadFiles() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+    // SharedPreferences prefs = await SharedPreferences.getInstance();
+    var box = await Hive.openBox('fileBox');
+
     setState(() {
-      pdf_files = prefs.getStringList('pdfFiles') ?? [];
+      pdf_files = List<String>.from(box.get('pdfFiles', defaultValue: []));
+      // pdf_files = prefs.getStringList('pdfFiles') ?? [];
     });
+    await box.close();
   }
 
   Future<void> _saveFiles() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('pdfFiles', pdf_files); // Await saving operation
+    // SharedPreferences prefs = await SharedPreferences.getInstance();
+    // await prefs.setStringList('pdfFiles', pdf_files); // Await saving operation
+    var box = await Hive.openBox('fileBox');
+    await box.put('pdfFiles', pdf_files);
+    await box.close();
 
   }
 

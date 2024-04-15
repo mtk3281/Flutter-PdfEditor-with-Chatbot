@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:open_file/open_file.dart';
 import 'pdf_viewer_page.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:hive/hive.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -31,35 +31,56 @@ class _SearchPageState extends State<SearchPage> {
     super.initState();
     loadFiles();
   }
+  Future<void> _saveFiles() async {
+    var box = await Hive.openBox('fileBox');
+    await box.put('pdfFiles', pdf_files);
+    await box.put('word_files', word_files);
+    await box.put('ppt_files', ppt_files);
+    await box.put('txt_files', txt_files);
+    await box.put('searchHistory', searchHistory);
+    await box.close(); 
+  }
 
   Future<void> loadFiles() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var box = await Hive.openBox('fileBox');
     setState(() {
-      pdf_files = prefs.getStringList('pdfFiles') ?? [];
-      searchHistory = prefs.getStringList('searchHistory') ?? [];
-      word_files = prefs.getStringList('word_files') ?? [];
-      ppt_files = prefs.getStringList('ppt_files') ?? [];
-      txt_files = prefs.getStringList('txt_files') ?? [];
-    });
+      pdf_files = List<String>.from(box.get('pdfFiles', defaultValue: []));
+      word_files = List<String>.from(box.get('word_files', defaultValue: []));
+      ppt_files = List<String>.from(box.get('ppt_files', defaultValue: []));
+      txt_files = List<String>.from(box.get('txt_files', defaultValue: []));
+      searchHistory = List<String>.from(box.get('searchHistory',defaultValue: []));
+        });
+    await box.close();
   }
+  // Future<void> loadFiles() async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   setState(() {
+  //     pdf_files = prefs.getStringList('pdfFiles') ?? [];
+  //     searchHistory = prefs.getStringList('searchHistory') ?? [];
+  //     word_files = prefs.getStringList('word_files') ?? [];
+  //     ppt_files = prefs.getStringList('ppt_files') ?? [];
+  //     txt_files = prefs.getStringList('txt_files') ?? [];
+  //   });
+  // }
 
-  Future<void> _saveFiles() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('pdfFiles', pdf_files); // Await saving operation
-    await prefs.setStringList('searchHistory', searchHistory);
-    await prefs.setStringList('word_files', word_files);
-    await prefs.setStringList('ppt_files', ppt_files);
-    await prefs.setStringList('txt_files', txt_files);
-  }
+  // Future<void> _saveFiles() async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   await prefs.setStringList('pdfFiles', pdf_files);
+  //   await prefs.setStringList('searchHistory', searchHistory);
+  //   await prefs.setStringList('word_files', word_files);
+  //   await prefs.setStringList('ppt_files', ppt_files);
+  //   await prefs.setStringList('txt_files', txt_files);
+  // }
 
   void _addRecentFile(String filePath) async {
     if (!searchHistory.contains(filePath)) {
       // _RecentsFiles.add(filePath);
       searchHistory.insert(0, filePath);
     }
-
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setStringList('searchHistory', searchHistory);
+    var box = await Hive.openBox('fileBox');
+    await box.put('searchHistory', searchHistory);
+    // SharedPreferences prefs = await SharedPreferences.getInstance();
+    // prefs.setStringList('searchHistory', searchHistory);
   }
 
   @override

@@ -3,18 +3,22 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart' as path;
 import 'package:intl/intl.dart' as intl;
 import 'package:pdfeditor/widget/searchpdf.dart';
+import 'package:syncfusion_flutter_pdf/pdf.dart';
+import 'package:pdfeditor/widget/snackbar.dart';
 
 
 class FileSelectionPage extends StatefulWidget {
   final List<String> filepaths;
   final String type;
-  final bool multipleChoice; // Added parameter for multiple selection
+  final bool multipleChoice;
+  final bool password; // New parameter for password protection
 
   const FileSelectionPage({
     Key? key,
     required this.filepaths,
     required this.type,
-    this.multipleChoice = false, // Default to single selection
+    this.multipleChoice = false,
+    this.password = false, // Default to false
   }) : super(key: key);
 
   @override
@@ -22,9 +26,9 @@ class FileSelectionPage extends StatefulWidget {
 }
 
 class _FileSelectionPageState extends State<FileSelectionPage> {
-  String? _selectedFilePath; // For single selection
-  final List<String> _selectedFilePaths = []; // For multiple selection
-bool _multipleSelected = false;
+  String? _selectedFilePath;
+  final List<String> _selectedFilePaths = [];
+  bool _multipleSelected = false;
 
   @override
   Widget build(BuildContext context) {
@@ -58,11 +62,8 @@ bool _multipleSelected = false;
                           }
                         });
                         if (result != null && result!.isNotEmpty) {
-                        setState(() {
-                         _selectedFilePath = result; // Update selected file path
-                       });
-                        }
-                      Navigator.pop(context, _selectedFilePath);
+                          await checkpass(result, context);
+                          }                    
                    
                   },
                 ),
@@ -82,9 +83,61 @@ bool _multipleSelected = false;
     );
   }
 
+Future<void> checkpass(String? result, BuildContext context) async {
+    
+    File file = File(result!);
+    
+    bool isProtected= await isPdfPasswordProtected(file);
+    
+        if (widget.password == isProtected)
+        {
+            setState(() {
+          _selectedFilePath = result; // Update selected file path
+        });
+        Navigator.pop(context, _selectedFilePath);
+    
+      }
+    else
+    {
+
+        if (widget.password)
+        {
+          ScaffoldMessenger.of(context).showSnackBar(
+                  buildCustomSnackBar(
+                   'Cant select PDF with No Password ',
+                    300, 
+                  ),
+                );
+        }
+        else
+        {
+          ScaffoldMessenger.of(context).showSnackBar(
+                  buildCustomSnackBar(
+                   'Cant select PDF with Password ',
+                    280, 
+                  ),
+                );
+        }
+    
+      
+        }
+  }
+
+Future<bool> isPdfPasswordProtected(File file) async {
+  bool isProtected = false;
+  PdfDocument? document = null;
+
+  try {
+    document = PdfDocument(inputBytes: file.readAsBytesSync());
+  } catch (e) {
+    isProtected = true;
+  }
+  document?.dispose();
+  return isProtected;
+}
 
 
-  Widget _buildSingleSelectListView() {
+Widget _buildSingleSelectListView() {
     return ListView.builder(
       itemCount: widget.filepaths.length,
       itemBuilder: (context, index) {
@@ -99,6 +152,8 @@ bool _multipleSelected = false;
   }
 
 Widget _buildMultiSelectListView() {
+  print("count $widget.filepaths.length");
+  print(widget.filepaths.length);
   return ListView.builder(
     itemCount: widget.filepaths.length,
     itemBuilder: (context, index) {
@@ -134,14 +189,45 @@ Widget _buildMultiSelectListView() {
               ],
             ),
             value: _selectedFilePaths.contains(filePath),
-            onChanged: (value) {
-              setState(() {
+            onChanged: (value) async{
                 if (value!) {
-                  _selectedFilePaths.add(filePath);
-                } else {
-                  _selectedFilePaths.remove(filePath);
+                  File file = File(filePath!);
+                  bool isProtected= await isPdfPasswordProtected(file);
+                  if (widget.password == isProtected)
+                  {
+                      setState(() {
+                    _selectedFilePaths.add(filePath);// Update selected file path
+                  });
                 }
-              });
+                else
+                  {
+                    if (widget.password)
+                    {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                              buildCustomSnackBar(
+                              'Cant select PDF with No Password ',
+                                300, 
+                              ),
+                            );
+                    }
+                    else
+                    {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                              buildCustomSnackBar(
+                              'Cant select PDF with Password ',
+                                280, 
+                              ),
+                            );
+                    }
+                  }
+                }
+              else {
+                setState(() {
+                  _selectedFilePaths.remove(filePath);
+                  
+                });
+                }
+
             },
           ),
         ),
@@ -203,12 +289,9 @@ Widget _buildFileIcon(String filePath) {
           filterQuality: FilterQuality.high,
         ),
         onTap: widget.multipleChoice
-           ? null // Disable tap for multi-select mode
-           : () {
-               setState(() {
-                 _selectedFilePath = filePath;
-               });
-               Navigator.pop(context, _selectedFilePath);
+           ? null
+           : () async{
+               await checkpass(filePath, context);
              },
      ),
    );

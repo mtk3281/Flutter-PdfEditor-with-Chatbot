@@ -860,48 +860,6 @@
       "languageVersion": "2.12"
     },
     {
-      "name": "shared_preferences",
-      "rootUri": "file:///C:/Users/tkmun/AppData/Local/Pub/Cache/hosted/pub.dev/shared_preferences-2.2.2",
-      "packageUri": "lib/",
-      "languageVersion": "2.19"
-    },
-    {
-      "name": "shared_preferences_android",
-      "rootUri": "file:///C:/Users/tkmun/AppData/Local/Pub/Cache/hosted/pub.dev/shared_preferences_android-2.2.1",
-      "packageUri": "lib/",
-      "languageVersion": "2.19"
-    },
-    {
-      "name": "shared_preferences_foundation",
-      "rootUri": "file:///C:/Users/tkmun/AppData/Local/Pub/Cache/hosted/pub.dev/shared_preferences_foundation-2.3.5",
-      "packageUri": "lib/",
-      "languageVersion": "3.0"
-    },
-    {
-      "name": "shared_preferences_linux",
-      "rootUri": "file:///C:/Users/tkmun/AppData/Local/Pub/Cache/hosted/pub.dev/shared_preferences_linux-2.3.2",
-      "packageUri": "lib/",
-      "languageVersion": "2.19"
-    },
-    {
-      "name": "shared_preferences_platform_interface",
-      "rootUri": "file:///C:/Users/tkmun/AppData/Local/Pub/Cache/hosted/pub.dev/shared_preferences_platform_interface-2.3.2",
-      "packageUri": "lib/",
-      "languageVersion": "3.0"
-    },
-    {
-      "name": "shared_preferences_web",
-      "rootUri": "file:///C:/Users/tkmun/AppData/Local/Pub/Cache/hosted/pub.dev/shared_preferences_web-2.3.0",
-      "packageUri": "lib/",
-      "languageVersion": "3.3"
-    },
-    {
-      "name": "shared_preferences_windows",
-      "rootUri": "file:///C:/Users/tkmun/AppData/Local/Pub/Cache/hosted/pub.dev/shared_preferences_windows-2.3.2",
-      "packageUri": "lib/",
-      "languageVersion": "2.19"
-    },
-    {
       "name": "shelf",
       "rootUri": "file:///C:/Users/tkmun/AppData/Local/Pub/Cache/hosted/pub.dev/shelf-1.4.1",
       "packageUri": "lib/",
@@ -1214,7 +1172,7 @@
       "languageVersion": "3.3"
     }
   ],
-  "generated": "2024-04-01T18:38:45.999274Z",
+  "generated": "2024-04-15T19:27:40.718771Z",
   "generator": "pub",
   "generatorVersion": "3.3.2"
 }
