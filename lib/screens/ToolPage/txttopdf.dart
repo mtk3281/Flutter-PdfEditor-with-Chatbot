@@ -14,15 +14,17 @@ class TextPdfGenerator {
   List<String> txt_files = [];
 
   Future<String?> pickAndConvertTextToPdf() async {
+
     final box = await Hive.openBox('fileBox');
     txt_files = List<String>.from(box.get('txt_files', defaultValue: []));
     await box.close();
+
     String? result;
 
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => FileSelectionPage(filepaths: txt_files,type: "Select Text File",),
+        builder: (context) => FileSelectionPage(filepaths: txt_files,title: "Select Text File",password: false,multipleChoice: false,type:'txt'),
       ),
     ).then((selectedFilePath) {
       if (selectedFilePath != null) {
@@ -33,23 +35,18 @@ class TextPdfGenerator {
     if (result == null) {
       return null;
     }
-
     final textFile = File(result!);
-
     try {
       final pdfDocument = syncPdf.PdfDocument();
       final page = pdfDocument.pages.add();
 
       final textContent = await textFile.readAsString();
 
-      // Initialize PdfText correctly
       final pdfText = syncPdf.PdfTextElement(text: textContent);
 
-      // Customize text formatting (optional)
       pdfText.font =
           syncPdf.PdfStandardFont(syncPdf.PdfFontFamily.helvetica, 12);
 
-      // Layout the text on the page
       final layoutResult = pdfText.draw(
         page: page,
         bounds: Rect.fromLTWH(
@@ -73,7 +70,7 @@ class TextPdfGenerator {
 
       ScaffoldMessenger.of(context).showSnackBar(
         buildCustomSnackBar(
-          "Image to PDF converted successfully",
+          "Text to PDF converted successfully",
           310, // Width of the SnackBar
         ),
       );

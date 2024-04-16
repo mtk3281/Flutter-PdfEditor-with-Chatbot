@@ -24,7 +24,6 @@ void main() async{
 
 class MyApp extends StatelessWidget {
   final bool isBookmarked;
-
   const MyApp({super.key, required this.isBookmarked});
 
   @override
@@ -68,10 +67,8 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
     "Text",
     "Recents"
   ];
-
   final ScrollController _scrollController = ScrollController();
   bool _isScrolling = false;
-
   late Map<String, List<String>> scanFiles;
   List<String> pdf_files = [];
   List<String> word_files = [];
@@ -80,7 +77,6 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
   List<String> _RecentsFiles = [];
   final List<String> _SearchFiles = [];
   List<String> Bookmarked = [];
-
   static const double kMinFlingVelocity = 200.0;
   double _dragStartX = 0.0;
   double dismissThreshold = 0.1; // Adjust as needed
@@ -88,7 +84,6 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
   double _previousDragOffset = 0.0;
   final double _dragVelocity = 0.0;
   bool _isCategoryChangePending = false;
-
   bool shouldStopDraging = false;
   bool _permStatus = false;
   bool Loading = false;
@@ -102,12 +97,13 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
     loadFiles();
   }
 
-  void loadBookmarks() {
+
+  void loadBookmarks() async{
     if (widget.isBookmarked && !_permStatus) {
       _requestPermission();
     }
-    // _saveFiles();
-    loadFiles();
+    await loadFiles();
+    await _saveFiles();
   }
 
   void _initPermissions() async {
@@ -124,7 +120,7 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
       var box = await Hive.openBox('permissionBox');
       await box.put('permissionStatus', true);
       await box.close();
-      await loadPerm();
+      await loadFiles();
       if (_selectedOption == 'PDF files' &&
           pdf_files.isEmpty &&
           !widget.isBookmarked) {
@@ -133,26 +129,10 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _scrollController.removeListener(_onScroll);
-    _saveFiles();
-    super.dispose();
-  }
-
   void _onScroll() {
     setState(() {
       _isScrolling = _scrollController.offset > 0;
     });
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.inactive) {
-      _saveFiles(); // Save recent files when the app is paused or inactive
-    }
   }
 
   Future<void> _scanPdfFiles() async {
@@ -175,11 +155,11 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
           (scanFiles['pptx']?.toList() ?? []);
       txt_files = scanFiles['txt'] ?? [];
     });
-    String sortBy = 'File';
-    String orderBy = 'Ascending';
+    String sortBy = 'Date';
+    String orderBy = 'Descending';
     sortPathfile(sortBy, orderBy);
-    await updateRecents();
     await _saveFiles();
+    await updateRecents();
     setState(() {
       Loading = false;
     });
@@ -196,15 +176,6 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
     await box.put('bookmarked', Bookmarked);
     _len = pdf_files.length;
     await box.close(); 
-  }
-
-  Future<void> loadPerm() async {
-    print("Loading Perm");
-    var perm = await Hive.openBox('permissionBox');
-    setState(() {
-      _permStatus = perm.get('permissionStatus', defaultValue: false);
-    });
-    await perm.close();
   }
 
   Future<void> loadFiles() async {
@@ -296,7 +267,6 @@ class PdfEditorState extends State<HomeScreen> with WidgetsBindingObserver {
   void _changeCategoryToRight() {
     int currentIndex = _categories.indexOf(_selectedOption);
     if (currentIndex < _categories.length - 1 && _selectedOption != 'Recents') {
-      // Allow swipe right if not on the last category ("Recents")
       setState(() {
         _selectedOption = _categories[currentIndex + 1];
       });
@@ -444,14 +414,6 @@ void sortPathfile(String sortBy, String orderBy) async {
           }
           break;
       }
-      // SharedPreferences prefs = await SharedPreferences.getInstance();
-      // await prefs.setStringList(
-      //     'pdfFiles', pdf_files); // Await saving operation
-      // await prefs.setStringList('recentFiles', _RecentsFiles);
-      // await prefs.setStringList('word_files', word_files);
-      // await prefs.setStringList('ppt_files', ppt_files);
-      // await prefs.setStringList('txt_files', txt_files);
-      // await prefs.setStringList("bookmarked", Bookmarked);
       var box = await Hive.openBox('fileBox');
       await box.put('pdfFiles', pdf_files);
       await box.put('recentFiles', _RecentsFiles);
@@ -1107,14 +1069,13 @@ void sortPathfile(String sortBy, String orderBy) async {
         if (ext == 'pdf') {
           setState(() {
             openPDF(
-                context, File(filePath)); // Use the 'File' class from 'dart:io'
+                context, File(filePath));
             _addRecentFile(filePath);
           });
         } else {
           setState(() {
             _addRecentFile(filePath);
             Future<OpenResult> res = OpenFile.open(filePath, type: type[ext]);
-            
           });
         }
       },
@@ -1467,7 +1428,7 @@ void sortPathfile(String sortBy, String orderBy) async {
     }
 
     setState(() {
-      _saveFiles(); // Save updated lists
+      _saveFiles();
     });
   }
 

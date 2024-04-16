@@ -6,7 +6,11 @@ import 'package:intl/intl.dart' as intl;
 import 'package:hive/hive.dart';
 
 class SearchPage extends StatefulWidget {
-  const SearchPage({super.key});
+  final String type;
+  const SearchPage({
+    Key? key,
+    required this.type,
+  }) : super(key: key);
 
   @override
   _SearchPageState createState() => _SearchPageState();
@@ -19,6 +23,7 @@ class _SearchPageState extends State<SearchPage> {
   bool _Searching = false;
 
   List<String> pdf_files = [];
+  List<String> txt_files = [];
   List<String> SearchFiles = [];
 
   @override
@@ -28,23 +33,19 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Future<void> loadFiles() async {
-    // SharedPreferences prefs = await SharedPreferences.getInstance();
     var box = await Hive.openBox('fileBox');
-
     setState(() {
       pdf_files = List<String>.from(box.get('pdfFiles', defaultValue: []));
-      // pdf_files = prefs.getStringList('pdfFiles') ?? [];
+      txt_files =  List<String>.from(box.get('txt_files', defaultValue: []));
     });
     await box.close();
   }
 
   Future<void> _saveFiles() async {
-    // SharedPreferences prefs = await SharedPreferences.getInstance();
-    // await prefs.setStringList('pdfFiles', pdf_files); // Await saving operation
     var box = await Hive.openBox('fileBox');
     await box.put('pdfFiles', pdf_files);
+    await box.put('txt_files', txt_files);
     await box.close();
-
   }
 
   @override
@@ -127,17 +128,35 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   void _performSearch(String value) {
-    if (value.isEmpty) {
-      SearchFiles = [];
-    } else {
-          SearchFiles = pdf_files
-              .where((val) => path
-                  .basename(val)
-                  .toLowerCase()
-                  .contains(value.toLowerCase()))
-              .toList();
-          print("PDF");
-      print(SearchFiles);
+    if(widget.type == 'pdf')
+    {
+      if (value.isEmpty) {
+        SearchFiles = [];
+      } else {
+            SearchFiles = pdf_files
+                .where((val) => path
+                    .basename(val)
+                    .toLowerCase()
+                    .contains(value.toLowerCase()))
+                .toList();
+            print("PDF");
+        print(SearchFiles);
+      }
+    }
+    else if(widget.type == 'txt')
+    {
+       if (value.isEmpty) {
+        SearchFiles = [];
+      } else {
+            SearchFiles = txt_files
+                .where((val) => path
+                    .basename(val)
+                    .toLowerCase()
+                    .contains(value.toLowerCase()))
+                .toList();
+            print("TXT");
+        print(SearchFiles);
+      }
     }
   }
 

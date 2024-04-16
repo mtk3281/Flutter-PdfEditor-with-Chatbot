@@ -133,6 +133,7 @@ Widget buildToolButton(BuildContext context, IconData icon, String name) {
         final generator = MultiImagePdfGenerator(context);
         String? filepath = await generator.pickAndConvertImagesToPdf();
         if (filepath != null) {
+          await _addRecentFile(filepath);
           openPDF(context, File(filepath));
         }
       }
@@ -141,7 +142,12 @@ Widget buildToolButton(BuildContext context, IconData icon, String name) {
         final generator = TextPdfGenerator(context);
         String? filepath = await generator.pickAndConvertTextToPdf();
         if (filepath != null) {
+          await _addRecentFile(filepath);
           openPDF(context, File(filepath));
+        }
+        else
+        {
+          print("filepath null");
         }
       }
 
@@ -263,16 +269,23 @@ Widget buildToolButton(BuildContext context, IconData icon, String name) {
   );
 }
 
+  Future <void> _addRecentFile(String filePath) async { 
+      var box = await Hive.openBox('fileBox');
+      List<String> pdf_files = List<String>.from(box.get('pdfFiles', defaultValue: []));
+        pdf_files.insert(0, filePath);
+        print(pdf_files.length);
+      await box.put('pdfFiles', pdf_files);
+      await box.close();
+  }
 
 Future<String?> selectfiles(BuildContext context,String name,bool password) async {
   String? result;
   var box = await Hive.openBox('fileBox');
   List<String> pdf_files = List<String>.from(box.get('pdfFiles', defaultValue: []));
-  print(pdf_files);
    await Navigator.push(
      context,
      MaterialPageRoute(
-       builder: (context) => FileSelectionPage(filepaths: pdf_files,type: name,multipleChoice:false,password: password,),
+       builder: (context) => FileSelectionPage(filepaths: pdf_files,title: name,multipleChoice:false,password: password,type:'pdf'),
      ),
    ).then((selectedFilePath) {
      if (selectedFilePath != null) {
@@ -292,8 +305,9 @@ Future<List<String>> selectmultiplefiles(BuildContext context,String name) async
     MaterialPageRoute(
       builder: (context) => FileSelectionPage(
         filepaths: pdfFiles,
-        type: name,
+        title: name,
         multipleChoice: true,
+        type: 'pdf',
       ),
     ),
   ).then((selectedFilePath) {

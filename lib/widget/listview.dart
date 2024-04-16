@@ -9,13 +9,15 @@ import 'package:pdfeditor/widget/snackbar.dart';
 
 class FileSelectionPage extends StatefulWidget {
   final List<String> filepaths;
-  final String type;
+  final String title;
   final bool multipleChoice;
   final bool password; // New parameter for password protection
+  final String type;
 
   const FileSelectionPage({
     Key? key,
     required this.filepaths,
+    required this.title,
     required this.type,
     this.multipleChoice = false,
     this.password = false, // Default to false
@@ -54,7 +56,7 @@ class _FileSelectionPageState extends State<FileSelectionPage> {
                     await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => SearchPage(),
+                            builder: (context) => SearchPage(type: widget.type),
                           ),
                         ).then((selectedFilePath) {
                           if (selectedFilePath != null) {
@@ -62,14 +64,25 @@ class _FileSelectionPageState extends State<FileSelectionPage> {
                           }
                         });
                         if (result != null && result!.isNotEmpty) {
-                          await checkpass(result, context);
+                          print(result);
+                          if(widget.type=='pdf')
+                          {
+                            await checkpass(result, context);
+                          }
+                          else
+                          {
+                            setState(() {
+                              _selectedFilePath = result; // Update selected file path
+                           });
+                            Navigator.pop(context, _selectedFilePath);
+                          }
                           }                    
                    
                   },
                 ),
 
                 ],
-        title: Text('${widget.type}',
+        title: Text('${widget.title}',
             style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20)),
         
       ),
@@ -84,43 +97,49 @@ class _FileSelectionPageState extends State<FileSelectionPage> {
   }
 
 Future<void> checkpass(String? result, BuildContext context) async {
-    
-    File file = File(result!);
-    
-    bool isProtected= await isPdfPasswordProtected(file);
-    
-        if (widget.password == isProtected)
-        {
-            setState(() {
-          _selectedFilePath = result; // Update selected file path
-        });
-        Navigator.pop(context, _selectedFilePath);
-    
-      }
-    else
+    if (widget.type=='pdf')
     {
-
-        if (widget.password)
-        {
-          ScaffoldMessenger.of(context).showSnackBar(
-                  buildCustomSnackBar(
-                   'Cant select PDF with No Password ',
-                    300, 
-                  ),
-                );
-        }
-        else
-        {
-          ScaffoldMessenger.of(context).showSnackBar(
-                  buildCustomSnackBar(
-                   'Cant select PDF with Password ',
-                    280, 
-                  ),
-                );
-        }
-    
+      File file = File(result!);
+      bool isProtected= await isPdfPasswordProtected(file);
+      if (widget.password == isProtected)
+      {
+        setState(() {
+          _selectedFilePath = result; // Update selected file path
+      });
+      
+      Navigator.pop(context, _selectedFilePath);
       
         }
+      else
+      {
+          if (widget.password)
+          {
+            ScaffoldMessenger.of(context).showSnackBar(
+                    buildCustomSnackBar(
+                    'Cant select PDF with No Password ',
+                      300, 
+                    ),
+                  );
+          }
+          else
+          {
+            ScaffoldMessenger.of(context).showSnackBar(
+                    buildCustomSnackBar(
+                    'Cant select PDF with Password ',
+                      280, 
+                    ),
+                  );
+          }
+          }
+      }
+      else
+      {
+        setState(() {
+            _selectedFilePath = result; // Update selected file path
+        });
+        
+        Navigator.pop(context, _selectedFilePath);
+      }
   }
 
 Future<bool> isPdfPasswordProtected(File file) async {
@@ -152,8 +171,6 @@ Widget _buildSingleSelectListView() {
   }
 
 Widget _buildMultiSelectListView() {
-  print("count $widget.filepaths.length");
-  print(widget.filepaths.length);
   return ListView.builder(
     itemCount: widget.filepaths.length,
     itemBuilder: (context, index) {
@@ -191,43 +208,41 @@ Widget _buildMultiSelectListView() {
             value: _selectedFilePaths.contains(filePath),
             onChanged: (value) async{
                 if (value!) {
-                  File file = File(filePath!);
-                  bool isProtected= await isPdfPasswordProtected(file);
-                  if (widget.password == isProtected)
-                  {
+                    File file = File(filePath!);
+                    bool isProtected= await isPdfPasswordProtected(file);
+                    if (widget.password == isProtected)
+                    {
                       setState(() {
-                    _selectedFilePaths.add(filePath);// Update selected file path
-                  });
-                }
-                else
-                  {
-                    if (widget.password)
+                        _selectedFilePaths.add(filePath);// Update selected file path
+                    });
+                  }
+                  else
                     {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                              buildCustomSnackBar(
-                              'Cant select PDF with No Password ',
-                                300, 
-                              ),
-                            );
-                    }
-                    else
-                    {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                              buildCustomSnackBar(
-                              'Cant select PDF with Password ',
-                                280, 
-                              ),
-                            );
+                      if (widget.password)
+                      {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                                buildCustomSnackBar(
+                                'Cant select PDF with No Password ',
+                                  300, 
+                                ),
+                              );
+                      }
+                      else
+                      {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                                buildCustomSnackBar(
+                                'Cant select PDF with Password ',
+                                  280, 
+                                ),
+                              );
+                      }
                     }
                   }
-                }
-              else {
-                setState(() {
-                  _selectedFilePaths.remove(filePath);
-                  
-                });
-                }
-
+                else {
+                  setState(() {
+                    _selectedFilePaths.remove(filePath);
+                  });
+                  }
             },
           ),
         ),
@@ -240,7 +255,7 @@ Widget _buildMultiSelectListView() {
 }
 
 
-Widget _buildFileIcon(String filePath) {
+  Widget _buildFileIcon(String filePath) {
   String ext = path.basename(filePath).split('.').last.toLowerCase();
   String imagepath = 'assets/$ext.png';
   if (ext == 'pptx') {
@@ -328,7 +343,6 @@ Widget _buildSubmitButton() {
     },
   );
 }
-
 
   String _getFileSize(String filePath) {
     File file = File(filePath);

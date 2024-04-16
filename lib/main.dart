@@ -75,11 +75,8 @@ void _initGoogleFonts() {
 void openPDF(BuildContext context, File file) async {
   var box = await Hive.openBox('fileBox');
   List<String>? recentFiles =  List<String>.from(box.get('recentFiles', defaultValue: []));
-  // SharedPreferences prefs = await SharedPreferences.getInstance();
-  // List<String>? recentFiles = prefs.getStringList('recentFiles') ?? [];
   recentFiles.insert(0, file.path);
   await box.put('recentFiles', recentFiles);
-  // await prefs.setStringList('recentFiles', recentFiles);
   await _pdfEditorKeys[0].currentState?.loadFiles();
   await _pdfEditorKeys[1].currentState?.loadFiles();
 
@@ -152,7 +149,7 @@ class _BottomTabBarState extends State<BottomTabBar> {
           setState(() {
             _index = value;
           });
-          if (value == 1) {
+          if (value == 0 || value == 1) {
             _loadBookmarksInHomeScreen();
           }
         },
