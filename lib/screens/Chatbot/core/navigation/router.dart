@@ -1,5 +1,3 @@
-// ignore_for_file: lines_longer_than_80_chars
-
 import 'package:pdfeditor/screens/Chatbot/core/navigation/route.dart';
 import 'package:pdfeditor/screens/Chatbot/feature/chat/chat_page.dart';
 import 'package:pdfeditor/screens/Chatbot/feature/home/home_page.dart';
