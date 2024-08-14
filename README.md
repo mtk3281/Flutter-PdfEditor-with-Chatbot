@@ -1,19 +1,61 @@
 # PdfEditorPro
 
-PdfEditorPro is a Flutter project that allows users to edit and manipulate PDF documents on the go.
+## Overview
 
-Functionalities
+PdfEditorPro is a comprehensive PDF management app built with Flutter for Android. The application offers a wide range of functionalities to handle PDF documents and other file types efficiently. It includes features for creating, converting, encrypting, decrypting, and printing PDF files, along with a chatbot powered by the Gemini API for user interaction.
 
+## Features
 
-Open PDF: Users can open PDF documents from their device storage.
-Convert PDF: Convert PDF documents to various formats like images (JPG, PNG etc.), Word documents (DOCX) and vice versa.
+- **Open PDF**: Open PDF documents and other file types like Word, PowerPoint, and text files from your device storage.
+- **Bookmark Option**: Add bookmarks to your PDFs for easy navigation.
+- **Create PDF from Images**: Convert images into PDF files.
+- **Convert Text to PDF**: Create PDF files from text documents.
+- **Encrypt and Decrypt PDF**: Secure your PDF files with encryption and remove encryption when needed.
+- **Print PDF**: Print PDF documents directly from the app.
+- **Combine PDFs**: Merge multiple PDF files into a single document.
+- **Chatbot Integration**: Interact with a chatbot powered by the Gemini API for AI-assisted help and conversation.
 
-Security:
-Set Password: Encrypt PDFs with a password to restrict unauthorized access.
-Unlock PDF: Remove password protection from PDFs.
+## Technologies Used
 
-Organize PDFs:
-Merge PDF: Combine multiple PDF documents into a single file.
-Split PDF: Split a single PDF document into multiple files.
+- **Flutter**: Framework for building the application.
+- **Gemini API**: For integrating the chatbot functionality.
 
-Summarization: Extract key information and generate summaries of PDF content.
+## Installation
+
+### Prerequisites
+
+- Flutter SDK
+- Android Studio or Visual Studio Code
+- Dart SDK
+
+### Setup
+
+1. **Clone the Repository**
+
+    ```sh
+    git clone https://github.com/mtk3281/Flutter-PdfEditor-with-Chatbot.git
+    
+    ```
+
+2. **Install Dependencies**
+
+    Ensure you have the Flutter SDK installed. Run the following command to get the required dependencies:
+
+    ```sh
+    flutter pub get
+    ```
+
+3. **Run the Application**
+
+    Connect an Android device or start an emulator, then run:
+
+    ```sh
+    flutter run
+    ```
+
+## Project Structure
+
+- `lib/`: Contains the main Dart code for the application.
+- `assets/`: Includes resources such as images and icons.
+- `pubspec.yaml`: Lists the dependencies and other project settings.
+
